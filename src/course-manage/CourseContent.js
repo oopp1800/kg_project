@@ -27,8 +27,7 @@ class CourseContent extends Component {
         if(!course||!course.data){
             return null
         }
-        let rootNode;
-        let result;
+        let rootNode = {};
         const createTree = (root) => {
             root.children = [];
             if (!root.hasChildNode || root.hasChildNode.length === 0) return;
