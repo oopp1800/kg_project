@@ -30,13 +30,13 @@ const TYPE_CONVERSE = {
 
 class KnowledgePreview extends Component {
     state = {
-        kUnit: this.props.kUnit,
-        currentUrl: this.props.kUnit.teachUnit.mCourseUnit.material.url,
-        currentType: TYPE_CONVERSE[this.props.kUnit.teachUnit.mCourseUnit.material.type]
+        currentUrl: (this.props.kUnit && this.props.kUnit.teachUnit.mCourseUnit.material.url) || null,
+        currentType: TYPE_CONVERSE[(this.props.kUnit && this.props.kUnit.teachUnit.mCourseUnit.material.type) || undefined],
     };
 
     cancelEditor = () => {
-        ReactDOM.unmountComponentAtNode(document.getElementById('videoArea'));
+        this.props.onClose();
+        // ReactDOM.unmountComponentAtNode(document.getElementById('videoArea'));
     };
 
     onDocumentLoad = ({numPages}) => {
@@ -53,12 +53,12 @@ class KnowledgePreview extends Component {
             , document.getElementById('pdfView')
         )
 
-    }
+    };
 
 
     changeAidCourseMedia = (e) => {
         let pendingId = e.target.dataset.aid;
-        const aidCourseInfo = this.state.kUnit.teachUnit.aCourseUnit;
+        const aidCourseInfo = this.props.kUnit.teachUnit.aCourseUnit;
 
         aidCourseInfo.map(item => {
             if (pendingId === item._id) {
@@ -78,7 +78,7 @@ class KnowledgePreview extends Component {
 
     changeMainCourseMedia = (e) => {
         let pendingId = e.target.dataset.mid;
-        const mainCourseInfo = this.state.kUnit.teachUnit.mCourseUnit;
+        const mainCourseInfo = this.props.kUnit.teachUnit.mCourseUnit;
         if (pendingId === mainCourseInfo._id) {
             let type = mainCourseInfo.learningObjectType;
             if (type === '') {
@@ -92,7 +92,8 @@ class KnowledgePreview extends Component {
     };
 
     render() {
-        const {kUnit} = this.state;
+        const {kUnit} = this.props;
+        if (!kUnit) return null;
         const knowledgeInfo = kUnit;
         const teachInfo = knowledgeInfo.teachUnit;
         const aidCourseInfo = teachInfo.aCourseUnit;

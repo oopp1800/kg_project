@@ -58,3 +58,11 @@
     margin-top: -22.5%;
     z-index: 1000;
 }
+
+/* 课程内容图展示 */
+.graph-container {
+}
+
+.note-text {
+    font-size: 20px;
+}
