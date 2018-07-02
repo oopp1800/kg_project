@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import fetch from 'isomorphic-fetch';
+import { withRouter } from 'react-router-dom';
 
 import {Form, Row, Col, Input, Icon, Button} from 'antd';
 import {Checkbox} from 'antd';
@@ -133,4 +134,4 @@ class SearchInput extends React.Component {
 }
 
 const WrappedSearchInput = Form.create()(SearchInput);
-export default WrappedSearchInput
+export default withRouter(WrappedSearchInput);

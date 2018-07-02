@@ -8,6 +8,9 @@ import KnowledgePreview from "./knowledgePreview";
 
 const { Content, Footer } = Layout;
 
+const NODE_RECOMMEND_THRESHOLD = 50;
+const PATH_RECOMMEND_THRESHOLD = 50;
+
 class CourseContent extends Component {
     constructor(props) {
         super(props);
@@ -79,7 +82,7 @@ class CourseContent extends Component {
         }).then(res => res.json())
             .then(res => {
                 if (res && res.status === 'success') {
-                    return res.data;
+                    return res.data.project;
                     // this.props.onInit(res.data, this.initialize)
                 }
             })
@@ -90,24 +93,51 @@ class CourseContent extends Component {
     };
 
     parseCourse = course => {
-        if (!course) return null;
+        if (!course || !course.data) return null;
 
         const data = course.data;
-        let graphData = {
-            nodes: [],
-            edges: [],
-        };
+        let recommendationNodeMap,
+            recommendationPathMap,
+            graphData = {
+                nodes: [],
+                edges: [],
+            };
+
+        if (course.recommendation) {
+            recommendationNodeMap = new Map(course.recommendation.nodes.map(node => [node._id, node.recommendedDegree]));
+            recommendationPathMap = new Map(
+                course.recommendation.paths.map(node => [
+                    node.from + node.to,
+                    node.recommendedDegree,
+                ])
+            );
+        }
 
         data.forEach(node => {
-            graphData.nodes.push({ id: node._id, label: node.title });
+            let graphNode = { id: node._id, label: `${node.title} 学习进度：${node.learningProcess}` };
+            let recommendedDegree = recommendationNodeMap.get(node._id);
+
+            if (recommendedDegree && recommendedDegree > NODE_RECOMMEND_THRESHOLD) {
+                graphNode.color = 'red';
+                graphNode.title = `推荐度：${recommendedDegree}`;
+            }
+            graphData.nodes.push(graphNode);
 
             if (node.hasChildNode.length > 0) {
-                node.hasChildNode.forEach(childId =>
-                    graphData.edges.push({
+                node.hasChildNode.forEach(childId => {
+                    let graphPath = {
                         from: node._id,
-                        to: data.filter(node => node._id === childId)[0]._id,
-                    })
-                )
+                        to: childId,
+                    };
+                    let recommendedDegree = recommendationPathMap.get(node._id + childId);
+
+                    if (recommendedDegree && recommendedDegree > PATH_RECOMMEND_THRESHOLD) {
+                        graphPath.color = { color: 'red' };
+                        graphPath.label = `推荐度：${recommendedDegree}`;
+                        graphPath.font = { color: 'red' };
+                    }
+                    graphData.edges.push(graphPath);
+                });
             }
         });
 
@@ -139,12 +169,6 @@ class CourseContent extends Component {
         if (prevCourse) {
             this.onSetCurrentCourse(prevCourse);
         }
-        // if (prevCourse && prevCourse.teachUnit.mCourseUnit.material.url) {
-        //     this.onSetCurrentCourse(prevCourse);
-        // }
-        // else {
-        //     message.warning('上一节未设置资源');
-        // }
     };
 
     onNextCourse = id => {
@@ -155,12 +179,6 @@ class CourseContent extends Component {
         if (nextCourse) {
             this.onSetCurrentCourse(nextCourse);
         }
-        // if (nextCourse && nextCourse.teachUnit.mCourseUnit.material.url) {
-        //     this.onSetCurrentCourse(nextCourse);
-        // }
-        // else {
-        //     message.warning('下一节未设置资源');
-        // }
     };
 
     handleNodeClick = node => {
@@ -216,8 +234,7 @@ class CourseContent extends Component {
                     </Content>
                     <Footer>
                         <p className={'note-text'}>
-                            绿色结点：已学课程；<br />
-                            红色结点：当前学习课程；<br />
+                            红色结点：当前学习课程/推荐学习课程；<br />
                             红色箭头：推荐路径
                         </p>
                     </Footer>

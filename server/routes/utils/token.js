@@ -10,7 +10,7 @@ const token = {
     },
     checkToken:function (req,res,next) {
         const token = req.headers['authorization'];
-        if(token){
+        if (token) {
             jwt.verify(token,superSecret,function (err, decoded) {
                 if(err){
                     res.json({
@@ -30,6 +30,9 @@ const token = {
         }
 
 
+    },
+    getUsernameFromReq: function (req) {
+        return req.api_user.param;
     }
 };
 
