@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Graph from 'react-graph-vis';
 import { VizulyWeightedTree } from '../utils/Vizuly';
 import { Layout, message } from 'antd';
+import logger from '../utils/logger';
 
 import './index.css'
 import KnowledgePreview from "./knowledgePreview";
@@ -31,6 +32,9 @@ class CourseContent extends Component {
 
     onSetCurrentCourse(course) {
         console.log('setCurrentCourse', course);
+        logger.log(logger.START_LEARNING, {
+            course,
+        });
         this.setState({ currentCourse: course });
     };
 
@@ -132,8 +136,8 @@ class CourseContent extends Component {
                     let recommendedDegree = recommendationPathMap.get(node._id + childId);
 
                     if (recommendedDegree && recommendedDegree > PATH_RECOMMEND_THRESHOLD) {
-                        graphPath.color = { color: 'red' };
                         graphPath.label = `推荐度：${recommendedDegree}`;
+                        graphPath.color = { color: 'red', highlight: 'red' };
                         graphPath.font = { color: 'red' };
                     }
                     graphData.edges.push(graphPath);
@@ -222,7 +226,7 @@ class CourseContent extends Component {
             >
                 <Layout>
                     <Content
-                        style={{ width: '800px', height: '700px', position: 'relative', border: '1px solid #000'}}
+                        style={{ width: '800px', height: '700px', position: 'relative', border: '1px solid #000', margin: '20px'}}
                     >
                         { graphData ? GRAPH_JSX : <h1>等待载入课程...</h1> }
                         { this.state.showPreview && <KnowledgePreview
