@@ -20,6 +20,11 @@ class CourseContent extends Component {
             currentCourse: null,
             graphConfig: {
                 physics: false,
+                nodes: {
+                    shapeProperties: {
+                        useBorderWithImage: true
+                    }
+                }
             }
         };
         this.onSetCurrentCourse = this.onSetCurrentCourse.bind(this);
@@ -118,7 +123,12 @@ class CourseContent extends Component {
         }
 
         data.forEach(node => {
-            let graphNode = { id: node._id, label: `${node.title} 学习进度：${node.learningProcess}` };
+            let graphNode = {
+                id: node._id,
+                label: `${node.title}\n学习进度：${node.learningProcess}` ,
+                shape: 'image',
+                image: node.thumbnailUrl || null,
+            };
             let recommendedDegree = recommendationNodeMap.get(node._id);
 
             if (recommendedDegree && recommendedDegree > NODE_RECOMMEND_THRESHOLD) {

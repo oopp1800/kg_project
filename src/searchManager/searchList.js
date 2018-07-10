@@ -39,13 +39,7 @@ class SearchList extends Component {
         super(props);
         this.state = {
             expand: false,
-            searchResult: props.searchResult,
-
         }
-    }
-
-    componentWillReceiveProps(nextProps) {
-        this.setState({searchResult: nextProps.searchResult});
     }
 
     enterLesson = (lessonId) => {
@@ -64,7 +58,7 @@ class SearchList extends Component {
         console.log('111')
 
         const knowledgeId = e.target.parentNode.dataset.kid;
-        const knowledgeList = this.state.searchResult.knowledge;
+        const knowledgeList = this.props.searchResult.knowledge;
 
         let knowledgeData;
         for (let item in knowledgeList) {
@@ -85,8 +79,7 @@ class SearchList extends Component {
 
     render() {
         const LessonItemRouter = withRouter(SearchItemOfLesson);
-        const {searchResult} = this.state;
-        const {hasSearched} = this.props;
+        const {hasSearched, searchResult} = this.props;
         let mention = '';
         const lesson = [];
         const knowledge = [];
@@ -108,10 +101,10 @@ class SearchList extends Component {
             })
         }
         if (searchResult.knowledge.length !== 0) {
+            let i = 0;
             searchResult.knowledge.forEach(knowledges => {
-                let i=0;
                 knowledges.forEach((item) => {
-                    i+=1
+                    i += 1;
                     knowledge.push(
                         <Col span={22} key={i}>
                             <SearchItemOfKnowledge
@@ -120,9 +113,9 @@ class SearchList extends Component {
                             />
                         </Col>
                     )
-                })
+                });
 
-            })
+            });
 
         }
         if (!hasSearched) {

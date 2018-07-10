@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { withRouter } from "react-router-dom";
 import './login.css';
 import fetch from 'isomorphic-fetch';
 
@@ -54,4 +55,4 @@ class Login extends Component {
     }
 }
 
-export default Login;
+export default withRouter(Login);

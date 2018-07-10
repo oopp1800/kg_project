@@ -26,6 +26,8 @@ class SearchPage extends Component {
     };
 
     updateSearchList = (data) => {
+        if (!data.searchResult) return;
+
         let searchResult = {
             lesson: [],
             knowledge: []

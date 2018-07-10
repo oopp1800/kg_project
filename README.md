@@ -5,7 +5,7 @@
 - 前端：React
 - Web 服务器：Node.js
 - 数据库：MongoDB
-- ~~本体查询服务器：Python, Flusk~~
+- 本体查询服务器：Python, Flusk
 - SPARQL 服务器：Fuseki
 
 ## 环境要求
@@ -16,7 +16,7 @@
 
 ## 配置
 
-- 为 MongoDB 设置用户鉴权，并在 PATH_TO_PROJECT/server/config 路径下新建 dev.json 文件，参照 default.json 填入配置
+- 为 MongoDB 设置用户鉴权，并在 PATH_TO_PROJECT/server/config 路径下新建 dev.json/dev.yaml 文件，参照 default.json 填入配置
 - 运行 Fuseki 服务器（默认为 3030 端口）并将制作好的本体文件导入
 
 ## 运行
