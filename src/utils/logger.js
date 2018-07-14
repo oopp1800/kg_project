@@ -1,4 +1,6 @@
-import request from './request';
+import request from './netService/request';
+
+const ENABLE_LOGGER = false;
 
 class Logger {
     constructor () {
@@ -30,6 +32,12 @@ class Logger {
     }
 
     log (active, options) {
+        if (!ENABLE_LOGGER) {
+            return Promise.resolve({
+                message: 'ENABLE_LOGGER = false',
+            });
+        }
+
         switch (active) {
             case this.START_LEARNING: return this._logStartLearning(options);
             case this.END_LEARNING: return this._logEndLearning(options);

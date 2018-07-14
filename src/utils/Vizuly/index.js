@@ -4,6 +4,7 @@ import $ from 'jquery';
 
 
 import fetch from 'isomorphic-fetch';
+import request from '../netService/request';
 
 import InfiniteScroll from 'react-infinite-scroller';
 
@@ -332,21 +333,17 @@ class VizulyWeightedTree extends Component {
         // this.loadData();
 
         const token = localStorage.getItem('token');
-        fetch('/getCourse', {
-            method: 'POST',
+        request.get('/getCourse', {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": token,
             },
-            body: JSON.stringify({
-                projectId: this.props.projectId
-            })
+            query: {
+                id: this.props.projectId
+            }
         })
-            .then(res => res.json())
             .then(res => {
-                if (res && res.status === 'success') {
-                    this.props.onInit(res.data, this.initialize)
-                }
+                this.props.onInit(res, this.initialize)
             })
             .catch(err => console.log(err));
 

@@ -1,0 +1,104 @@
+.result-item {
+    margin: 40px 0;
+}
+
+.result-card {
+    margin: 15px 0;
+    height: 530px;
+    min-width: 900px;
+    border: 1px solid black;
+}
+
+.result-card-left {
+}
+
+.result-card-left .lesson-graph,
+.result-card-left .lesson-graph-loading {
+    height: 400px;
+}
+
+.result-card-left .lesson-graph-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.result-card-left .graph-notes {
+    position: absolute;
+    left: 0;
+    top: 320px;
+    display: flex;
+    align-items: center;
+    padding: 40px;
+    width: 30%;
+    min-width: 150px;
+    height: 80px;
+    background-color: white;
+    opacity: .6;
+    pointer-events: none;
+}
+
+.result-card-left .lesson-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 130px;
+    border-top: 1px solid black;
+}
+
+.result-card-left .intro {
+    margin: 0 0 8px 0;
+    padding: 0 10px;
+    display: inline-block;
+    font-size: .8rem;
+    border-radius: 5px;
+}
+
+.result-card-right {
+    height: 530px;
+    overflow: auto;
+    border-left: 1px solid black;
+}
+
+.sub-result-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 150px;
+    width: 100%;
+    /*border-bottom: 1px solid black;*/
+}
+
+.sub-result-list-item .intro {
+    margin: 0 0 8px 0;
+    padding: 0 10px;
+    display: inline-block;
+    font-size: .8rem;
+    border-radius: 5px;
+}
+
+.intro.intro-lesson {
+    border: 1px solid #595959;
+    color: #595959;
+}
+.intro.intro-knowledge {
+    border: 1px solid #d4b106;
+    color: #d4b106;
+}
+.intro.intro-kunit {
+    border: 1px solid #0050b3;
+    color: #0050b3;
+}
+.intro.intro-mcourse{
+    border: 1px solid #a8071a;
+    color: #a8071a;
+}
+.intro.intro-acourse{
+    border: 1px solid #5b8c00;
+    color: #5b8c00;
+}
+

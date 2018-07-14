@@ -1,4 +1,5 @@
 const UpdateGraph = require('../utils/updateGraph');
+const graphRequest = require('../../database/graph-operations');
 const { getUsernameFromReq } = require('../utils/token');
 const { findOneInModel } = require('../../database/model-operations');
 
@@ -17,7 +18,7 @@ const _getUserInfoByReq = function (req) {
 
 const _getLearningProcess = function () {
     return [{
-        _id: '7b7fd8d3-75ac-4d37-90ac-5cc0fabc79c0',
+        _id: 'eaab6c85-40d6-410c-8802-ab347407b0dc',
         process: 80,
     }, {
         _id: 'e1119a4a-6e0f-432d-8984-1f7aedddd5e0',
@@ -45,20 +46,16 @@ const _mergeLearningProcessToProject = function (learningProcess, project) {
 const _getRecommendation = function (project) {
     project.recommendation = {
         nodes: [{
-            _id: '1cfbbeb4-dbc2-46e1-86b5-e706bef948df',
+            _id: 'eaab6c85-40d6-410c-8802-ab347407b0dc',
             recommendedDegree: 100,
         }, {
-            _id: '7b7fd8d3-75ac-4d37-90ac-5cc0fabc79c0',
-            recommendedDegree: 100,
+            _id: 'f5db4246-10aa-447d-8b29-94095aef195a',
+            recommendedDegree: 80,
         }],
         paths: [{
-            from: '7b7fd8d3-75ac-4d37-90ac-5cc0fabc79c0',
-            to: '1cfbbeb4-dbc2-46e1-86b5-e706bef948df',
-            recommendedDegree: 0,
-        }, {
-            from: 'cafbedbd-7dc6-47f7-934c-902cc02443a6',
-            to: '7b7fd8d3-75ac-4d37-90ac-5cc0fabc79c0',
-            recommendedDegree: 100,
+            from: 'eaab6c85-40d6-410c-8802-ab347407b0dc',
+            to: 'f5db4246-10aa-447d-8b29-94095aef195a',
+            recommendedDegree: 85,
         }],
     };
 
@@ -100,7 +97,7 @@ module.exports = {
             user = _getUserInfoByReq(req);
 
         try {
-            project = await findOneInModel('tProject', {_id: req.body.projectId}, null, { lean: true });
+            project = await findOneInModel('tProject', {_id: req.query.id}, null, { lean: true });
             learningProcess = _getLearningProcess(user, project);
             project = _mergeLearningProcessToProject(learningProcess, project);
             project = _getRecommendation(project);
@@ -116,7 +113,58 @@ module.exports = {
             }
         });
     },
+    getKnowledge: async function(req, res, next) {
+        let knowledge = {},
+            learningProcess = null,
+            user = _getUserInfoByReq(req);
 
+        try {
+            knowledge = await graphRequest.getKnowledge(req.body.id);
+        }
+        catch(err) {
+            res.json({
+                status: 'error',
+                message: err,
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            data: {
+                knowledge,
+            }
+        });
+    },
+    getKunit: async function (req, res, next) {
+        let knowledge = {};
+
+        return res.json({
+            status: 'success',
+            data: {
+                knowledge,
+            }
+        });
+    },
+    getMcourse: async function (req, res, next) {
+        let knowledge = {};
+
+        return res.json({
+            status: 'success',
+            data: {
+                knowledge,
+            }
+        });
+    },
+    getAcourse: async function (req, res, next) {
+        let knowledge = {};
+
+        return res.json({
+            status: 'success',
+            data: {
+                knowledge,
+            }
+        });
+    },
     publishCourse: function (req, res, next) {
         let tProject = global.dbHandel.getModel('tProject');
         tProject.findOne({_id: req.body.projectId}, function (err, doc) {

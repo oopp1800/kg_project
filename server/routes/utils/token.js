@@ -9,7 +9,8 @@ const token = {
         });
     },
     checkToken:function (req,res,next) {
-        const token = req.headers['authorization'];
+        const token = req.headers['authorization'] && req.headers['authorization'].split(' ').pop();
+
         if (token) {
             jwt.verify(token,superSecret,function (err, decoded) {
                 if(err){

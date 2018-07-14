@@ -30,8 +30,12 @@ router.post('/getCourse', tokenObj.checkToken, course.getCourse);
 router.post('/publishCourse', tokenObj.checkToken, course.publishCourse);
 
 /* 课程学习 */
-router.post('/getCourse', tokenObj.checkToken, course.getCourse);
+router.get('/getCourse', tokenObj.checkToken, course.getCourse);
 router.get('/getAllCourses', tokenObj.checkToken, course.getAllCourses);
+router.get('/getKnowledge', tokenObj.checkToken, course.getKnowledge);
+router.get('/getKunit', tokenObj.checkToken, course.getKunit);
+router.get('/getMcourse', tokenObj.checkToken, course.getMcourse);
+router.get('/getAcourse', tokenObj.checkToken, course.getAcourse);
 
 /* 资源 */
 router.post('/upload', tokenObj.checkToken, material.uploadMaterial);

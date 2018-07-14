@@ -8,7 +8,6 @@ import {
 
 import {LearnerCourseRoute} from '../course-manage';
 import {SearchRoute} from '../searchManager';
-import {SearchPage} from '../searchManager'
 import Home from '../homepage/homepage'
 
 const {Sider} = Layout;
@@ -67,7 +66,6 @@ class LearningPage extends Component {
         let {itemKey} = this.getSubMenuAndItemKeyFromLocation(this.props.location);
         if (itemKey === "learning-page") itemKey = 'home';
 
-        console.log(itemKey);
         return (
             <Layout style={{minHeight: '100vh'}}>
                 <Sider

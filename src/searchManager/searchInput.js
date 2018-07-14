@@ -6,23 +6,23 @@ import {Form, Row, Col, Input, Icon, Button} from 'antd';
 import {Checkbox} from 'antd';
 
 const FormItem = Form.Item;
-const Search = Input.Search;
 const CheckboxGroup = Checkbox.Group;
 
 const plainOptions = ['课程信息', '知识点信息'];
 
-class SearchInput extends React.Component {
+class SearchInput extends Component {
     constructor(props){
-        super(props)
+        super(props);
         this.state = {
             expand: false,
+            isLoading: false,
         }
     }
 
 
     getToken = () => {
         return localStorage.getItem('token');
-    }
+    };
 
     request = (url, data, callback) => {
         const token = this.getToken();
@@ -43,10 +43,19 @@ class SearchInput extends React.Component {
             }
 
         })
-    }
+    };
+
+    handleStartLoading = () => {
+        this.setState({ isLoading: true });
+    };
+    handleEndLoading = () => {
+        this.setState({ isLoading: false });
+    };
 
     handleSearch = (e) => {
         e.preventDefault();
+
+        this.handleStartLoading();
         this.props.form.validateFields((err, values) => {
             let searchInput = values.searchInput;
             let searchOptions = [];
@@ -62,7 +71,8 @@ class SearchInput extends React.Component {
                 searchInput: searchInput,
                 searchOptions: searchOptions
             }, (data) => {
-                console.log(data)
+                console.log(data);
+                this.handleEndLoading();
                 this.props.updateSearchList(data)
             })
         });
@@ -92,41 +102,31 @@ class SearchInput extends React.Component {
         const Collapse = !this.state.expand ? '展开' : '收起';
         return (
             <Form
+                layout="inline"
                 className="ant-advanced-search-form"
                 onSubmit={this.handleSearch}
             >
-                <Row gutter={6}>
-                    <Col span={6} offset={9}>
-                        <section>
-                            <FormItem
-                            >
-                                {getFieldDecorator('searchInput', {
-                                    rules: [{message: '请输入检索的内容'}],
-                                })(
-                                    <Input
-                                        size="large"
-                                        placeholder="请输入检索信息"/>
-                                )}
-                            </FormItem>
-                        </section>
-                    </Col>
-                    <Col span={1}>
-                        <section>
-                            <Button type="primary" size="large" htmlType="submit">搜索</Button>
-                        </section>
-                    </Col>
-                    <Col span={1}>
-                        <section>
-                            <a style={{marginLeft: 8, fontSize: 18, lineHeight: '40px'}} onClick={this.toggle}>
-                                {Collapse}<Icon type={this.state.expand ? 'up' : 'down'}/>
-                            </a>
-                        </section>
-                    </Col>
+                <Row type="flex" align="middle" justify="center">
+                    <FormItem>
+                        {getFieldDecorator('searchInput', {
+                            rules: [{message: '请输入检索的内容'}],
+                        })(
+                            <Input
+                                size="large"
+                                placeholder="请输入检索信息"/>
+                        )}
+                    </FormItem>
+                    <FormItem>
+                        <Button type="primary" size="large" htmlType="submit" loading={this.state.isLoading}>搜索</Button>
+                    </FormItem>
+                    <FormItem>
+                        <a onClick={this.toggle}>
+                            {Collapse}<Icon type={this.state.expand ? 'up' : 'down'}/>
+                        </a>
+                    </FormItem>
                 </Row>
-                <Row>
-                    <Col span={6} offset={9}>
-                        {this.getAdvanced()}
-                    </Col>
+                <Row type="flex" align="middle" justify="center">
+                    {this.getAdvanced()}
                 </Row>
             </Form>
         );

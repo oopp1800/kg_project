@@ -199,7 +199,7 @@ const EditorInfo = (props) => {
         for (let index in projectData) {
             let project = projectData[index];
             children.push(
-                <div className="col-2" key={index}>
+                <div className="d-flex ml-4 mr-4" key={index}>
                     <ProjectBox
                         pData={project}
                         onEditClick={onEditClick}
@@ -239,7 +239,7 @@ const ProjectBox = (props) => {
         publishStatusClassName = 'publish';
     }
     return (
-        <div className="card mb-4 box-shadow">
+        <div className="card d-inline-block mb-4 box-shadow" style={{ width: '220px' }}>
             <img className="card-img-top" src={pData.thumbnailUrl || defaultImg}
                  style={{height:'9rem'}}
                  alt="Card image cap"/>

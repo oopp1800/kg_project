@@ -17,11 +17,16 @@ class MaterialManage extends Component {
 
         this.deleteMaterial = this.deleteMaterial.bind(this);
         this.updateMaterial = this.updateMaterial.bind(this);
+        this.reloadMaterial = this.reloadMaterial.bind(this);
+    }
+
+    reloadMaterial() {
+        request.get('/materials')
+            .then(materials => this.setState({materials}));
     }
 
     componentDidMount() {
-        request.get('/materials')
-            .then(materials => this.setState({materials}));
+        this.reloadMaterial();
     }
 
     deleteMaterial(materialId) {
@@ -55,7 +60,7 @@ class MaterialManage extends Component {
         return(
             <Layout>
                 <Header style={{ backgroundColor: 'white' }}>
-                    <MaterialUploader />
+                    <MaterialUploader onFinish={() => {this.reloadMaterial();}}/>
                 </Header>
                 <Content style={{ padding: '16px'}}>
                     <MaterialList materials={materials}
@@ -84,6 +89,7 @@ class MaterialUploader extends Component {
     };
 
     closeModal = () => {
+        this.props.onFinish();
         this.setState({
             showModal: false,
         });

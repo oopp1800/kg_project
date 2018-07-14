@@ -11,7 +11,7 @@ import fetch from 'isomorphic-fetch';
 import KnowledgeEditor from './knowledge-editor';
 import 'jquery-mousewheel'
 
-import {Input, Button, Modal, Row, Col, Form, Select} from 'antd';
+import {Input, Button, Modal, Form, Select} from 'antd';
 
 const FormItem = Form.Item;
 const Option = Select.Option;
@@ -61,11 +61,11 @@ class Editor extends Component {
             if (err) {
                 return;
             }
-            values.title ? updateOptions.projectName = values.title : '';
-            values.description ? updateOptions.description = values.description : '';
-            values.thumbnailUrl ? updateOptions.thumbnailUrl = values.thumbnailUrl : '';
+            updateOptions.projectName = values.title || '';
+            updateOptions.description = values.description || '';
+            updateOptions.thumbnailUrl = values.thumbnailUrl || '';
             updateOptions.visible = false;
-            console.log(updateOptions)
+            console.log(updateOptions);
 
             form.resetFields();
             this.setState(updateOptions);
@@ -110,11 +110,9 @@ class Editor extends Component {
         };
 
         let targetUrl = null;
-        let img_ori_position = {};
         let scale = 1;
         let path_container = this.state.path_container;
         let path_from = null;
-        let elements = [];
         let _this = this;
 
         function updateBasicOptions(options) {
@@ -149,7 +147,7 @@ class Editor extends Component {
             let initPositionOfStart = {
                 x: parseInt(start.css('left').match(/[^px]+/)),
                 y: parseInt(start.css('top').match(/[^px]+/))
-            }
+            };
             console.log(initPositionOfStart);
             return initPositionOfStart;
         }
@@ -333,7 +331,6 @@ class Editor extends Component {
                     console.log(path_container)
                     //No.4 发送删除元素或路径的信息，发送要删除元素的id，或要删除路径的目标id，type='delElement'为删除元素，type='delPath'为删除路径
                     if (type === 'delElement') {
-                        console.log('23434234')
                         ele.remove();
                         $(ele[0].circle).remove();
                         callback ? callback(type, {elmId: ele.attr('id'), butn: butnArray}) : '';
@@ -520,7 +517,7 @@ class Editor extends Component {
                 dragBoxGhost.remove();
                 return null;
             }
-        }
+        };
 
         func.prototype.move_canvas_ele = function (e, ele, click_position_on_img) {
             var mouse_position = this.get_click_position(e);
@@ -535,11 +532,11 @@ class Editor extends Component {
                 }
             }
             circle_comewith_ele(ele);
-        }
+        };
 
         func.prototype.release_canvas_ele = function (e, _this) {
             unBind($(_this));
-        }
+        };
 
         func.prototype.move_canvas = function (e, old_client_position, trans_position, css_trans_origin, css_trans_offset) {
             var originX, originY, trans_offset;
@@ -833,7 +830,7 @@ class Editor extends Component {
                 'position': 'absolute',
                 'margin': '0'
             }).attr('id', id);
-            img = !imgUrl ? createElement('img').attr("src", "http://localhost:3000/defaultImg.jpg") : createElement('img').attr('src', imgUrl)
+            img = !imgUrl ? createElement('img').attr("src", "/defaultImg.jpg") : createElement('img').attr('src', imgUrl)
             newBox.append(img);
             if (videoUrl) {
                 newBox[0].videoUrl = videoUrl;
@@ -852,7 +849,7 @@ class Editor extends Component {
             let id = uuid();
             targetUrl = {
                 videoUrl: "",
-                imgUrl: "http://localhost:3000/defaultImg.jpg"
+                imgUrl: "/defaultImg.jpg"
             }
             let div = createNewElement(fun, id, targetUrl.imgUrl, targetUrl.videoUrl);
             let imgSize = getELemSize(control.dragBox);
@@ -1478,7 +1475,7 @@ class Editor extends Component {
                 tagSvg.width((-deltaX) + 42);
             }
         }
-    }
+    };
 
     makePath = (deltaX, deltaY, path, arrow) => {
         let ax = 6, ay = 3;
@@ -1604,7 +1601,7 @@ class Editor extends Component {
                 }
             }
         }
-    }
+    };
 
     get_deltaXY = (from, to) => {
         let deltaX = parseInt(to.css('left')) - parseInt(from.css('left')) - from.width();
@@ -1613,7 +1610,7 @@ class Editor extends Component {
             deltaX: deltaX,
             deltaY: deltaY
         };
-    }
+    };
 
 
     path_move_with_img = (from, to, path) => {
@@ -1621,7 +1618,7 @@ class Editor extends Component {
         let delta = this.get_deltaXY(from, to);
         this.makeSvg(delta.deltaX, delta.deltaY, path, path_from_position.left, path_from_position.top);
         this.makePath(delta.deltaX, delta.deltaY, path.children('.path'), path.children('.arrow'));
-    }
+    };
 
     set_path_cssAndAttr = (svg, path, path_back, arrow) => {
         svg[0].style.cssText = 'pointer-events:none;position:absolute;overflow:visible;';
@@ -1695,7 +1692,7 @@ class Editor extends Component {
             this.static_path(to_ele, from_ele);
         } else {
             let currentPath;
-            this.state.path_container.map(item => {
+            this.state.path_container.forEach(item => {
                 if (item.from === from_ele[0] && item.to === to_ele[0]) {
                     currentPath = item;
                 }
@@ -1866,10 +1863,9 @@ class UpdateSetting extends Component {
     render() {
         const {visible, onCancel, onCreate, form} = this.props;
         const {getFieldDecorator} = form;
-        const {projectName, thumbnailUrl, description} = this.props;
+        const {projectName, description} = this.props;
         const materialList = this.state.materialList;
         const children = [];
-        let type;
         for (let index in materialList) {
             if (materialList[index]) {
                 if (materialList[index].type === '图片') {

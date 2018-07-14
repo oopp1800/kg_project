@@ -60,10 +60,10 @@ class MaterialList extends Component {
                                                    onClose={this.closeEditModal}
                                                    onEdit={newMaterial => this.handleEdit(edit.materialId, newMaterial)}
                 />}
-                <Row gutter={{xs: 8, sm: 16, md: 24, lg: 32}}>
+                <Row type="flex">
                     {
                         materials.map(({_id: id, title, description, format, url, thumbnailUrl: thumbnail}) => (
-                            <Col key={id} span={4} style={{marginBottom: "15px"}}>
+                            <Col key={id} style={{margin: "15px", width: "200px"}}>
                                 <MaterialCard
                                     id={id}
                                     title={title}

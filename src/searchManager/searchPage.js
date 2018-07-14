@@ -1,16 +1,9 @@
 import React, {Component} from 'react';
 
 import SearchInput from './searchInput'
-import SearchList from './searchList'
+import SearchList from './SearchList'
 
 import {Row, Col} from 'antd';
-
-
-import {
-    Switch,
-    Route,
-    withRouter
-} from 'react-router-dom';
 
 class SearchPage extends Component {
     constructor(props) {
@@ -28,21 +21,11 @@ class SearchPage extends Component {
     updateSearchList = (data) => {
         if (!data.searchResult) return;
 
-        let searchResult = {
-            lesson: [],
-            knowledge: []
-        };
-        if (data.searchResult.lesson) {
-            searchResult.lesson = data.searchResult.lesson
-        }
-        if (data.searchResult.knowledge) {
-            searchResult.knowledge = data.searchResult.knowledge
-        }
         this.setState({
             searchInput: data.searchInput,
-            searchResult: searchResult,
+            searchResult: data.searchResult,
             hasSearched:true
-        })
+        }, )
     };
 
     jumpToLessonPage = (e) => {
@@ -50,6 +33,16 @@ class SearchPage extends Component {
         console.log(lessonId)
     };
 
+    componentDidUpdate() {
+        sessionStorage.setItem('searchState', JSON.stringify(this.state));
+    }
+
+    componentDidMount() {
+        const prevState = sessionStorage.getItem('searchState');
+        if (prevState) {
+            this.setState(JSON.parse(prevState));
+        }
+    }
 
     render() {
         return (
@@ -80,4 +73,4 @@ class SearchPage extends Component {
 }
 
 
-export default SearchPage
+export default SearchPage;

@@ -20,7 +20,7 @@ const UpdateGraph = function (data, type, callback) {
     };
 
     if (NO_GRAPH_SERVER) {
-         callback && callback();
+        callback && callback();
     }
     else {
         request(option, function (err, res) {

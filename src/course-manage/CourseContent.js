@@ -2,7 +2,9 @@ import React, { Component } from 'react';
 import Graph from 'react-graph-vis';
 import { VizulyWeightedTree } from '../utils/Vizuly';
 import { Layout, message } from 'antd';
+import request from '../utils/netService/request';
 import logger from '../utils/logger';
+import graphParser from '../utils/graphParser';
 
 import './index.css'
 import KnowledgePreview from "./knowledgePreview";
@@ -20,7 +22,18 @@ class CourseContent extends Component {
             currentCourse: null,
             graphConfig: {
                 physics: false,
+                layout: {
+                    hierarchical: {
+                        levelSeparation: 200,
+                        nodeSpacing: 150,
+                        treeSpacing: 200,
+                        direction: 'LR',
+                        sortMethod: 'directed',
+                    },
+                },
                 nodes: {
+                    borderWidth: 2,
+                    size: 30,
                     shapeProperties: {
                         useBorderWithImage: true
                     }
@@ -79,84 +92,22 @@ class CourseContent extends Component {
 
     getData = (data, callback) => {
         const token = localStorage.getItem('token');
-        fetch('/getCourse', {
-            method: 'POST',
+        request.get('/getCourse', {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": token,
             },
-            body: JSON.stringify({
-                projectId: this.props.projectId
-            })
-        }).then(res => res.json())
-            .then(res => {
-                if (res && res.status === 'success') {
-                    return res.data.project;
-                    // this.props.onInit(res.data, this.initialize)
-                }
-            })
+            query: {
+                id: this.props.projectId
+            },
+        }).then(res => res.project)
             .then(this.pSetCourse)
             .then(this.props.updateCurrentLesson)
             .catch(err => console.log(err));
 
     };
 
-    parseCourse = course => {
-        if (!course || !course.data) return null;
-
-        const data = course.data;
-        let recommendationNodeMap,
-            recommendationPathMap,
-            graphData = {
-                nodes: [],
-                edges: [],
-            };
-
-        if (course.recommendation) {
-            recommendationNodeMap = new Map(course.recommendation.nodes.map(node => [node._id, node.recommendedDegree]));
-            recommendationPathMap = new Map(
-                course.recommendation.paths.map(node => [
-                    node.from + node.to,
-                    node.recommendedDegree,
-                ])
-            );
-        }
-
-        data.forEach(node => {
-            let graphNode = {
-                id: node._id,
-                label: `${node.title}\n学习进度：${node.learningProcess}` ,
-                shape: 'image',
-                image: node.thumbnailUrl || null,
-            };
-            let recommendedDegree = recommendationNodeMap.get(node._id);
-
-            if (recommendedDegree && recommendedDegree > NODE_RECOMMEND_THRESHOLD) {
-                graphNode.color = 'red';
-                graphNode.title = `推荐度：${recommendedDegree}`;
-            }
-            graphData.nodes.push(graphNode);
-
-            if (node.hasChildNode.length > 0) {
-                node.hasChildNode.forEach(childId => {
-                    let graphPath = {
-                        from: node._id,
-                        to: childId,
-                    };
-                    let recommendedDegree = recommendationPathMap.get(node._id + childId);
-
-                    if (recommendedDegree && recommendedDegree > PATH_RECOMMEND_THRESHOLD) {
-                        graphPath.label = `推荐度：${recommendedDegree}`;
-                        graphPath.color = { color: 'red', highlight: 'red' };
-                        graphPath.font = { color: 'red' };
-                    }
-                    graphData.edges.push(graphPath);
-                });
-            }
-        });
-
-        return graphData;
-    };
+    parseCourse = course => graphParser.parseLesson(course, { recommendation: true });
 
     _getCourseDataById = id => {
         const courseDatas = this.state.course.data;
@@ -264,7 +215,7 @@ const NoCurrentLesson = () => {
             暂无课程
         </div>
     );
-}
+};
 
 export {
     NoCurrentLesson,
