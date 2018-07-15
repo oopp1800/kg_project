@@ -51,9 +51,6 @@ class Graph {
             image: knowledge.data.thumbnailUrl || '',
             brokenImage: '/default-cover/knowledge.png',
         };
-        if (options.current) {
-            node.borderWidth = 4;
-        }
         this.nodes.push(node);
         this.addEdge(knowledge.id)
     }
@@ -126,6 +123,12 @@ class Graph {
     }
     getData() {
         if (this.nodes.length === 0) return null;
+        let nodes = this.nodes.map(node => {
+            if (node.id === this.current) {
+                node.borderWidth = 4;
+            }
+            return node;
+        });
 
         return {
             nodes: this.nodes,
