@@ -1,7 +1,5 @@
-const graphOptions = require('./graph-request');
+const graphOperations = require('./graph-request');
 
 module.exports = {
-    getKnowledge: id => {
-        return graphOptions.getKnowledge;
-    },
+    ...graphOperations
 };

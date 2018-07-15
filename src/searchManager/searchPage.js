@@ -25,7 +25,7 @@ class SearchPage extends Component {
             searchInput: data.searchInput,
             searchResult: data.searchResult,
             hasSearched:true
-        }, )
+        })
     };
 
     jumpToLessonPage = (e) => {
@@ -34,14 +34,14 @@ class SearchPage extends Component {
     };
 
     componentDidUpdate() {
-        sessionStorage.setItem('searchState', JSON.stringify(this.state));
+        // sessionStorage.setItem('searchState', JSON.stringify(this.state));
     }
 
     componentDidMount() {
-        const prevState = sessionStorage.getItem('searchState');
-        if (prevState) {
-            this.setState(JSON.parse(prevState));
-        }
+        // const prevState = sessionStorage.getItem('searchState');
+        // if (prevState) {
+        //     this.setState(JSON.parse(prevState));
+        // }
     }
 
     render() {

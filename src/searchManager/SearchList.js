@@ -24,73 +24,12 @@ const TYPE_MAPPING_TABLE = {
     "acourse": "辅课时",
 };
 
-const MOCK_PROPS_NONE = {
-    hasSearched: true,
-    searchResult: [],
-};
-const MOCK_PROPS = {
-    hasSearched: true,
-    searchResult: [{
-        lessonName: '信息论',
-        lessonId: '42ed20d0-bcd3-4175-a3a9-a8f4e3e41d35',
-        teacherName: [],
-        thumbnailUrl: '',
-        resultsInLesson: [{
-            type: 'knowledge',
-            similarity: 0.8,
-            id: '321-xxx',
-            title: '离散信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'kunit',
-            similarity: 0.6,
-            id: '322-xxx',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'kunit',
-            similarity: 0.6,
-            id: '323-xxx',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'kunit',
-            similarity: 0.6,
-            id: '324-xxx',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }]
-    }, {
-        lessonName: '通信原理',
-        lessonId: 'c8e01d1d-8026-45d1-b39a-ffa6b71ed0e1',
-        teacherName: [],
-        thumbnailUrl: '',
-        resultsInLesson: [{
-            type: 'knowledge',
-            similarity: 0.8,
-            id: '321-xxy',
-            title: '离散信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'kunit',
-            similarity: 0.6,
-            id: '322-xxy',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'mcourse',
-            similarity: 0.6,
-            id: '323-xxy',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }, {
-            type: 'acourse',
-            similarity: 0.6,
-            id: '324-xxy',
-            title: '连续信道',
-            thumbnailUrl: '',
-        }]
-    }],
+const COLOR_MAP = {
+    lesson: '#595959',
+    knowledge: '#d4b106',
+    kunit: '#0050b3',
+    mcourse: '#a8071a',
+    acourse: '#5b8c00'
 };
 
 class SearchList extends Component {
@@ -163,10 +102,38 @@ class ResultCardInOneLesson extends Component {
                     },
                     nodes: {
                         borderWidth: 2,
+                        shape: 'image',
                         shapeProperties: {
                             useBorderWithImage: true,
                         }
-                    }
+                    },
+                    groups: {
+                        "lesson": {
+                            color: {
+                                border: COLOR_MAP.lesson,
+                            }
+                        },
+                        "knowledge": {
+                            color: {
+                                border: COLOR_MAP.knowledge,
+                            }
+                        },
+                        "kunit": {
+                            color: {
+                                border: COLOR_MAP.kunit,
+                            }
+                        },
+                        "mcourse": {
+                            color: {
+                                border: COLOR_MAP.mcourse,
+                            }
+                        },
+                        "acourse": {
+                            color: {
+                                border: COLOR_MAP.acourse,
+                            }
+                        },
+                    },
                 },
                 data: {
                     nodes: [],
@@ -210,7 +177,7 @@ class ResultCardInOneLesson extends Component {
 
         try {
             resourse = await getResourseFunction(id);
-            graph = graphParserFunction(resourse);
+            graph = graphParserFunction(resourse[type]);
 
             this.setGraph(graph);
         }
@@ -218,7 +185,6 @@ class ResultCardInOneLesson extends Component {
             console.error(err);
         }
 
-        //TODO: graph changing
     }
 
     async getLessonGraph(result) {
@@ -236,22 +202,40 @@ class ResultCardInOneLesson extends Component {
     }
 
     getSubResultsList(result) {
-        return result && result.resultsInLesson;
+        return result && result.resultsInLesson.sort(
+            (resource1, resource2) => resource2.similarity - resource1.similarity
+        );
     }
 
     setGraph(newGraph) {
-        this.setState(prevState => ({
+        const prevState = this.state;
+        let graph = prevState.graph;
+        graph.data = newGraph;
+
+        console.log(graph);
+        // 直接 set 会导致 Graph 数据不对，所以先清空再 set
+        this.setState({
             graph: {
-                ...prevState.graph,
-                data: newGraph,
-            }
-        }));
+                nodes: [],
+                edges: [],
+            },
+        }, () => {
+            this.setState({
+                graph
+            })
+        });
+    }
+
+    backToLessonGraph() {
+        if (!this.lessonGraph) return;
+        this.setGraph(this.lessonGraph);
     }
 
     async componentDidMount() {
         const lessonGraph = await this.getLessonGraph(this.props.result);
 
         console.log('lessonGraph: ', lessonGraph);
+        this.lessonGraph = lessonGraph;
 
         this.setGraph(lessonGraph);
     }
@@ -296,11 +280,11 @@ class ResultCardInOneLesson extends Component {
                 <Row className="result-card">
                     <Col span={16} className="result-card-left">
                         {graphArea}
-                        <p className="graph-notes">
-                            双击展开知识点<br />
-                            单击进入内容
-                        </p>
-                        <div className="lesson-meta">
+                        {/*<p className="graph-notes">*/}
+                            {/*双击展开知识点<br />*/}
+                            {/*单击进入内容*/}
+                        {/*</p>*/}
+                        <div className="lesson-meta" onClick={() => this.backToLessonGraph()}>
                             <div className="lesson-info">
                                 <p className="intro intro-lesson">{TYPE_MAPPING_TABLE.lesson}</p>
                                 <h3 className="lesson-name">{result.lessonName}</h3>

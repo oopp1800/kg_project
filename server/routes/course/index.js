@@ -114,56 +114,88 @@ module.exports = {
         });
     },
     getKnowledge: async function(req, res, next) {
-        let knowledge = {},
-            learningProcess = null,
-            user = _getUserInfoByReq(req);
+        const id = req.query.id || req.body.id;
+        let knowledge = {};
 
         try {
-            knowledge = await graphRequest.getKnowledge(req.body.id);
+            knowledge = await graphRequest.getKnowledge(id);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    knowledge,
+                }
+            });
         }
         catch(err) {
-            res.json({
+            return res.json({
                 status: 'error',
                 message: err,
             });
         }
-
-        return res.json({
-            status: 'success',
-            data: {
-                knowledge,
-            }
-        });
     },
     getKunit: async function (req, res, next) {
-        let knowledge = {};
+        const id = req.query.id || req.body.id;
+        let kunit = {};
 
-        return res.json({
-            status: 'success',
-            data: {
-                knowledge,
-            }
-        });
+        try {
+            kunit = await graphRequest.getKunit(id);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    kunit,
+                }
+            });
+        }
+        catch(err) {
+            return res.json({
+                status: 'error',
+                message: err,
+            });
+        }
     },
     getMcourse: async function (req, res, next) {
-        let knowledge = {};
+        const id = req.query.id || req.body.id;
+        let mcourse = {};
 
-        return res.json({
-            status: 'success',
-            data: {
-                knowledge,
-            }
-        });
+        try {
+            mcourse = await graphRequest.getMcourse(id);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    mcourse,
+                }
+            });
+        }
+        catch(err) {
+            return res.json({
+                status: 'error',
+                message: err,
+            });
+        }
     },
     getAcourse: async function (req, res, next) {
-        let knowledge = {};
+        const id = req.query.id || req.body.id;
+        let acourse = {};
 
-        return res.json({
-            status: 'success',
-            data: {
-                knowledge,
-            }
-        });
+        try {
+            acourse = await graphRequest.getAcourse(id);
+
+            return res.json({
+                status: 'success',
+                data: {
+                    acourse,
+                }
+            });
+        }
+        catch(err) {
+            return res.json({
+                status: 'error',
+                message: err,
+            });
+        }
     },
     publishCourse: function (req, res, next) {
         let tProject = global.dbHandel.getModel('tProject');

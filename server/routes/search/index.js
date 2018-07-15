@@ -52,6 +52,7 @@ const parseForReturn = pyRes => {
     let result = [];
     let lessonIds = [];
     if (!pyRes) return result;
+    console.log(JSON.stringify(pyRes));
 
     // get all lesson
     for (let key in pyRes) {
@@ -66,6 +67,7 @@ const parseForReturn = pyRes => {
             });
         }
         else {
+            console.log(contents);
             contents.forEach(other => {
                 if (!other.lesson || !other.lesson.data || lessonIds.indexOf(other.lesson.id) !== -1) return;
 
