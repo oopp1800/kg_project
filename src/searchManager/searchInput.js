@@ -8,7 +8,14 @@ import {Checkbox} from 'antd';
 const FormItem = Form.Item;
 const CheckboxGroup = Checkbox.Group;
 
-const plainOptions = ['课程信息', '知识点信息'];
+const ALL_PLAIN_OPTIONS = ['课程信息', '知识点信息', '教学单元信息', '主课时信息', '辅课时信息'];
+const OPTION_MAP_TABLE = {
+    '课程信息': 'lesson',
+    '知识点信息': 'knowledge',
+    '教学单元信息': 'kunit',
+    '主课时信息': 'mcourse',
+    '辅课时信息': 'acourse',
+};
 
 class SearchInput extends Component {
     constructor(props){
@@ -55,18 +62,18 @@ class SearchInput extends Component {
     handleSearch = (e) => {
         e.preventDefault();
 
+        const getSearchOptions = plainOptions => {
+            const optionNum = plainOptions.length;
+            if (!optionNum) return ALL_PLAIN_OPTIONS.map(option => OPTION_MAP_TABLE[option]);
+
+            return plainOptions.map(option => OPTION_MAP_TABLE[option]);
+        };
+
         this.handleStartLoading();
         this.props.form.validateFields((err, values) => {
             let searchInput = values.searchInput;
-            let searchOptions = [];
-            if(values.plainOptions){
-                if (values.plainOptions.length === 1) {
-                    searchOptions = values.plainOptions[0] === '课程信息' ? ['Lesson'] : ['Knowledge']
-                }
-                if (values.plainOptions.length === 2) {
-                    searchOptions = ['Lesson', 'Knowledge']
-                }
-            }
+            let searchOptions = getSearchOptions(values.plainOptions || []);
+
             this.request('/search', {
                 searchInput: searchInput,
                 searchOptions: searchOptions
@@ -91,7 +98,7 @@ class SearchInput extends Component {
         } else {
             return <FormItem>
                 {getFieldDecorator(`plainOptions`)(
-                    <CheckboxGroup options={plainOptions}/>
+                    <CheckboxGroup options={ALL_PLAIN_OPTIONS}/>
                 )}
             </FormItem>
         }

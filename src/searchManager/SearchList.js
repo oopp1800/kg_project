@@ -179,6 +179,7 @@ class ResultCardInOneLesson extends Component {
             resourse = await getResourseFunction(id);
             graph = graphParserFunction(resourse[type]);
 
+            console.log(graph);
             this.setGraph(graph);
         }
         catch(err) {
@@ -324,10 +325,12 @@ const SubResultListItem = props => (
             <p className={`intro intro-${props.data.type}`}>{TYPE_MAPPING_TABLE[props.data.type]}</p>
             <h3 className="sub-result-title">{props.data.title}</h3>
         </div>
+        {props.data.similarity &&
         <Progress className="similarity"
                   type="dashboard"
                   format={percent => `相似度\n${percent.toFixed(1)}%`}
                   percent={props.data.similarity * 100}/>
+        }
     </div>
 );
 

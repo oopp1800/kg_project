@@ -60,14 +60,13 @@ const parseForReturn = pyRes => {
 
         if (key === 'lesson') {
             contents.forEach(lesson => {
-                if (!lesson.lesson || !lesson.lesson.data) return;
+                if (!lesson.lesson || !lesson.lesson.data || lessonIds.indexOf(lesson.lesson.id) !== -1) return;
 
                 lessonIds.push(lesson.lesson.id);
                 result.push(parseLesson(lesson.lesson));
             });
         }
         else {
-            console.log(contents);
             contents.forEach(other => {
                 if (!other.lesson || !other.lesson.data || lessonIds.indexOf(other.lesson.id) !== -1) return;
 

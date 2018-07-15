@@ -12,7 +12,11 @@ const REQUEST_URL = {
     'publish': GRAPH_SERVER_HOST + '/publishLesson',
     'unPublish': GRAPH_SERVER_HOST + '/unPublishLesson',
     'search': GRAPH_SERVER_HOST + '/search',
+    'getLesson': GRAPH_SERVER_HOST + '/getLesson',
     'getKnowledge': GRAPH_SERVER_HOST + '/getKnowledge',
+    'getKunit': GRAPH_SERVER_HOST + '/getKunit',
+    'getMcourse': GRAPH_SERVER_HOST + '/getMcourse',
+    'getAcourse': GRAPH_SERVER_HOST + '/getAcourse',
 };
 
 const _request = async (data, type) => {
@@ -43,9 +47,41 @@ const _request = async (data, type) => {
 };
 
 module.exports = {
+    getLesson: id => {
+        try {
+            return _request({ id }, 'getLesson');
+        }
+        catch (err) {
+            throw new Error(err);
+        }
+    },
     getKnowledge: id => {
         try {
             return _request({ id }, 'getKnowledge');
+        }
+        catch (err) {
+            throw new Error(err);
+        }
+    },
+    getKunit: id => {
+        try {
+            return _request({ id }, 'getKunit');
+        }
+        catch (err) {
+            throw new Error(err);
+        }
+    },
+    getMcourse: id => {
+        try {
+            return _request({ id }, 'getMcourse');
+        }
+        catch (err) {
+            throw new Error(err);
+        }
+    },
+    getAcourse: id => {
+        try {
+            return _request({ id }, 'getAcourse');
         }
         catch (err) {
             throw new Error(err);
