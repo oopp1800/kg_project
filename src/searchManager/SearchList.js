@@ -203,7 +203,20 @@ class ResultCardInOneLesson extends Component {
     }
 
     getSubResultsList(result) {
-        return result && result.resultsInLesson.sort(
+        if (!result || !result.resultsInLesson || !Array.isArray(result.resultsInLesson)
+            || result.resultsInLesson.length < 1) {
+            return null;
+        }
+
+        let resultIdSet = new Set();
+
+        const subResults = result.resultsInLesson.filter(subResult => {
+            if (!subResult || resultIdSet.has(subResult.id)) return false;
+
+            resultIdSet.add(subResult.id);
+            return true;
+        });
+        return subResults.sort(
             (resource1, resource2) => resource2.similarity - resource1.similarity
         );
     }

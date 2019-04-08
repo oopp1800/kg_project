@@ -1,6 +1,6 @@
 import request from './netService/request';
 
-const ENABLE_LOGGER = false;
+const ENABLE_LOGGER = true;
 
 class Logger {
     constructor () {
@@ -19,15 +19,19 @@ class Logger {
 
     _logStartLearning(options) {
         return this._logDefault({
-            ...options,
-            activity: this.START_LEARNING,
+            activity: {
+                action: this.END_LEARNING,
+                ...options,
+            },
         });
     }
 
     _logEndLearning(options) {
         return this._logDefault({
-            ...options,
-            activity: this.END_LEARNING,
+            activity: {
+                action: this.END_LEARNING,
+                ...options,
+            },
         });
     }
 

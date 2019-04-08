@@ -388,6 +388,9 @@ class KnowledgeEditor extends Component {
                                         <div id="parentNode" className="parentNode">
                                             <label>父知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 label="父知识点"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
@@ -402,6 +405,9 @@ class KnowledgeEditor extends Component {
                                         <div id="containNode" className="containNode">
                                             <label>子知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
@@ -415,6 +421,9 @@ class KnowledgeEditor extends Component {
                                         <div id="relyNode" className="relyNode">
                                             <label>受依赖知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
@@ -428,6 +437,9 @@ class KnowledgeEditor extends Component {
                                         <div id="relyNode" className="relyNode">
                                             <label>依赖的知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
@@ -441,6 +453,9 @@ class KnowledgeEditor extends Component {
                                         <div id="relatedNode" className="relatedNode">
                                             <label>相关知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
@@ -454,6 +469,9 @@ class KnowledgeEditor extends Component {
                                         <div id="synonymNode" className="synonymNode">
                                             <label>同义知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 mode="multiple"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
@@ -468,6 +486,9 @@ class KnowledgeEditor extends Component {
                                             <label>上一个知识点</label>
                                             <Select
 
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
                                                 defaultValue={defaultChildren.hasPrevNode}
@@ -479,6 +500,9 @@ class KnowledgeEditor extends Component {
                                         <div id="parallelNode" className="parallelNode">
                                             <label>下一个知识点</label>
                                             <Select
+                                                showSearch
+                                                autoClearSearchValue={false}
+                                                optionFilterProp="children"
                                                 style={{width: '100%'}}
                                                 placeholder="请选择"
                                                 defaultValue={defaultChildren.hasNextNode}

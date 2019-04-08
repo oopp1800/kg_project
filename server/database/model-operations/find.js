@@ -8,7 +8,7 @@ const operations = {
             model.find.apply(model, options)
                 .exec(function(err, docs) {
                 if (err) return reject(err);
-                if (!docs) return reject('查询 ' + modelname + ' 无返回结果');
+                // if (!docs) return reject('查询 ' + modelname + ' 无返回结果');
 
                 resolve(docs);
             })
@@ -21,7 +21,7 @@ const operations = {
             model.findOne.apply(model, options)
                 .exec(function(err, docs) {
                     if (err) return reject(err);
-                    if (!docs) return reject('查询 ' + modelname + ' 无返回结果');
+                    // if (!docs) return reject('查询 ' + modelname + ' 无返回结果');
 
                     resolve(docs);
                 })

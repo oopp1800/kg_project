@@ -23,6 +23,7 @@ if (typeof Object.assign != 'function') {
 module.exports = Object.assign(
     require('./models/mRegistration'),
     require('./models/mOnlineEditor'),
-    require('./models/mUser')
+    require('./models/mUser'),
+    require('./models/mTrackingData'),
 );
 

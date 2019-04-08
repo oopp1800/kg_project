@@ -7,6 +7,7 @@ let project = require('./project');
 let material = require('./material');
 let course = require('./course');
 let search = require('./search');
+let log = require('./log');
 
 let tokenObj = require('./utils/token');
 
@@ -45,6 +46,9 @@ router.put('/updateMaterial', tokenObj.checkToken, material.updateMaterial);
 
 /* 检索 */
 router.post('/search', tokenObj.checkToken, search.getSearchResult);
+
+/* 用户数据记录 */
+router.post('/log', tokenObj.checkToken, log.saveLog);
 
 
 module.exports = router;

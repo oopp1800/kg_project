@@ -87,7 +87,7 @@ class Graph {
             image: '/default-cover/acourse.png',
         };
         this.nodes.push(node);
-        this.addEdge(acourse);
+        this.addEdge(acourse.id);
     }
     setKnowledges(knowledges = []) {
         if (!Array.isArray(knowledges)) {
@@ -113,12 +113,8 @@ class Graph {
 
         if (acourses.length <= 0)  return null;
 
-        let currentAcourse = acourses.filter(acourse => acourse.current)[0],
-            neighborAcourses = acourses.filter(acourse => !acourse.current);
-
-        this.setAcourse(currentAcourse, { current: true });
-        neighborAcourses.forEach( neighborAcourse =>
-            this.setAcourse(neighborAcourse)
+        acourses.forEach( acourse =>
+            this.setAcourse(acourse)
         );
     }
     getData() {
@@ -291,8 +287,7 @@ export default {
 
         if (!acourses) return graph.getData();
 
-        const currentAcourses = acourses.filter(acourse => acourse.current)[0];
-        graph.setCurrent('acourse', currentAcourses.id);
+        graph.setCurrent('acourse', acourses.id);
 
         graph.setLesson(lesson);
         graph.setKnowledge(knowledge);

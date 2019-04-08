@@ -97,8 +97,12 @@ module.exports = {
             user = _getUserInfoByReq(req);
 
         try {
-            project = await findOneInModel('tProject', {_id: req.query.id}, null, { lean: true });
-            learningProcess = _getLearningProcess(user, project);
+            let batchRequest = [];
+
+            batchRequest.push(findOneInModel('tProject', {_id: req.query.id}, null, { lean: true }));
+            batchRequest.push(_getLearningProcess(user, project));
+            [project, learningProcess] = await Promise.all(batchRequest);
+
             project = _mergeLearningProcessToProject(learningProcess, project);
             project = _getRecommendation(project);
         }
