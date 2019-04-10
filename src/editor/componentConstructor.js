@@ -66,7 +66,7 @@ function TeachUnit(kUnitId) {
 
 function Course(type, teachUnitId) {
     this._id = uuid();
-    this.type = type;
+    this.type = type;                   // 'aid': 辅课时；'main': 主课时
     this.title = '';
     this.duration = 0;
 

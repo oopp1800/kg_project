@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
 import Graph from 'react-graph-vis';
-import { VizulyWeightedTree } from '../utils/Vizuly';
-import { Layout, message } from 'antd';
+import {Button, Layout, message} from 'antd';
+import { Link, Redirect } from 'react-router-dom';
 import request from '../utils/netService/request';
 import logger from '../utils/logger';
 import graphParser from '../utils/graphParser';
+import netService from '../utils/netService';
 
 import './index.css'
-import KnowledgePreview from "./knowledgePreview";
 
-const { Content, Footer } = Layout;
 
 const NODE_RECOMMEND_THRESHOLD = 50;
 const PATH_RECOMMEND_THRESHOLD = 50;
@@ -19,7 +18,7 @@ class CourseContent extends Component {
         super(props);
         this.state = {
             course: null,
-            currentCourse: null,
+            knowledgeId: null,
             graphConfig: {
                 physics: false,
                 layout: {
@@ -38,22 +37,10 @@ class CourseContent extends Component {
                         useBorderWithImage: true
                     }
                 }
-            }
+            },
+            recommendedKnowledge: null,
         };
-        this.onSetCurrentCourse = this.onSetCurrentCourse.bind(this);
-        this.onPrevCourse = this.onPrevCourse.bind(this);
-        this.onNextCourse = this.onNextCourse.bind(this);
-        this.onShowKnowledgePreview = this.onShowKnowledgePreview.bind(this);
-        this.onHideKnowledgePreview = this.onHideKnowledgePreview.bind(this);
         this.courseToData = this.courseToData.bind(this);
-    };
-
-    onSetCurrentCourse(course) {
-        console.log('setCurrentCourse', course);
-        logger.log(logger.START_LEARNING, {
-            course,
-        });
-        this.setState({ currentCourse: course });
     };
 
     courseToData(course) {
@@ -90,80 +77,65 @@ class CourseContent extends Component {
         });
     };
 
-    getData = (data, callback) => {
+    getData = (courseId) => {
         const token = localStorage.getItem('token');
+
         request.get('/getCourse', {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": token,
             },
             query: {
-                id: this.props.projectId
+                id: courseId,
             },
         }).then(res => res.project)
             .then(this.pSetCourse)
             .then(this.props.updateCurrentLesson)
             .catch(err => console.log(err));
 
+        netService.recommendKnowledge(courseId)
+            .then(data => {
+                this.setState({
+                    recommendedKnowledge: data.recommendedKnowledge,
+                });
+            });
+
     };
 
     parseCourse = course => graphParser.parseLesson(course, { recommendation: true });
 
-    _getCourseDataById = id => {
-        const courseDatas = this.state.course.data;
-        if (!Array.isArray(courseDatas) || courseDatas.length <= 0) return;
-
-        return courseDatas.filter(courseData => courseData._id === id)[0];
-    };
-
-    onShowKnowledgePreview = () => {
-        this.setState({ showPreview: true });
-    };
-
-    onHideKnowledgePreview = () => {
-        this.setState({ showPreview: false });
-    };
-
-    onPrevCourse = id => {
-        const currentCourse = this.state.currentCourse;
-        console.log('currentCourse: ', currentCourse);
-        if (!currentCourse || !currentCourse.hasPrevNode) return;
-
-        const prevCourse = this._getCourseDataById(currentCourse.hasPrevNode[0]);
-        console.log('prevCourse: ', prevCourse);
-        if (prevCourse) {
-            this.onSetCurrentCourse(prevCourse);
-        }
-    };
-
-    onNextCourse = id => {
-        const currentCourse = this.state.currentCourse;
-        if (!currentCourse || !currentCourse.hasNextNode) return;
-
-        const nextCourse = this._getCourseDataById(currentCourse.hasNextNode[0]);
-        if (nextCourse) {
-            this.onSetCurrentCourse(nextCourse);
-        }
-    };
-
     handleNodeClick = node => {
 
-        if (!node) return;
+        if (!node || !Array.isArray(node.nodes) || node.nodes.length < 1) return;
+        const knowledgeId = node.nodes[0];
 
-        const currentCourse = this.state.course.data.filter(courseData => courseData._id === node.nodes[0])[0];
-        this.onSetCurrentCourse(currentCourse);
-        this.onShowKnowledgePreview();
-
-        console.log('clicked node', node);
+        this.setState({
+            knowledgeId,
+        });
     };
 
     componentDidMount() {
-        this.getData();
+        const courseId = this.props.match.params.courseId;
+
+        if (courseId) {
+            this.getData(courseId);
+        }
     }
 
     render() {
+        const courseId = this.props.match.params.courseId;
+        const { knowledgeId } = this.state;
+
+        if (!courseId) return (<NoCurrentLesson/>);
+
+        if (knowledgeId) {
+            return (
+                <Redirect to={`${this.props.match.url}/knowledge-points/${knowledgeId}`} />
+            );
+        }
+
+
         let graphData = this.parseCourse(this.state.course);
-        console.log(graphData);
 
         const GRAPH_JSX = (
             <Graph graph={graphData}
@@ -171,39 +143,36 @@ class CourseContent extends Component {
                    events={{click: this.handleNodeClick}}
             />
         );
-        const TREE_JSX = (
-            <VizulyWeightedTree
-                projectId={this.props.projectId}
-                data={this.courseToData(this.state.course)}
-                originData={this.state.course && this.state.course.data}
-                onInit={this.getData}
-            />
-        );
 
         return (
             <div
-                // ref={dom => this.container=dom}
-                style={{width: '100%', height: '100%'}}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    margin: '20px',
+                }}
             >
-                <Layout>
-                    <Content
-                        style={{ width: '800px', height: '700px', position: 'relative', border: '1px solid #000', margin: '20px'}}
-                    >
-                        { graphData ? GRAPH_JSX : <h1>等待载入课程...</h1> }
-                        { this.state.showPreview && <KnowledgePreview
-                            onNextCourse={this.onNextCourse}
-                            onPrevCourse={this.onPrevCourse}
-                            onClose={this.onHideKnowledgePreview}
-                            kUnit={this.state.currentCourse}
-                        />}
-                    </Content>
-                    <Footer>
-                        <p className={'note-text'}>
-                            红色结点：当前学习课程/推荐学习课程；<br />
-                            红色箭头：推荐路径
-                        </p>
-                    </Footer>
-                </Layout>
+                <div
+                    style={{
+                        width: '800px',
+                        height: '700px',
+                        position: 'relative',
+                        border: '1px solid #000',
+                    }}
+                >
+                    { graphData ? GRAPH_JSX : <h1>等待载入课程...</h1> }
+                </div>
+                <div id="course-info">
+                    <h1>课程名：{this.state.course && this.state.course.projectName}</h1>
+                    <p style={{
+                        display: this.state.recommendedKnowledge? 'block': 'none'
+                    }}>
+                        推荐学习路径：{this.state.recommendedKnowledge && this.state.recommendedKnowledge.title}
+                        <Link to={`/learning-page/courses/${this.state.course && this.state.course._id}/knowledge-points/${this.state.recommendedKnowledge && this.state.recommendedKnowledge._id}`}>
+                            <Button type="primary" style={{ marginLeft: '1rem'}}>前往</Button>
+                        </Link>
+                    </p>
+                </div>
             </div>
         );
     }
@@ -219,6 +188,6 @@ const NoCurrentLesson = () => {
 
 export {
     NoCurrentLesson,
-    CourseContent
+    CourseContent,
 }
 export default CourseContent;

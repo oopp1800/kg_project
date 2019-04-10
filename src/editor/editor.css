@@ -296,6 +296,8 @@
 /*teachunit-editor*/
 .teachUnitInfo {
     background-color: white;
+    max-height: 410px;
+    overflow: auto;
 }
 
 .basicInfo, .mainCourseBasicInfo, .mainCourseStatInfo, .mainCourseMaterialInfo, .aidCourseBasicInfo, .aidCourseStatInfo, .aidCourseMaterialInfo {

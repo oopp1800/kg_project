@@ -7,7 +7,7 @@ import {Row, Col} from 'antd';
 
 class CourseList extends Component {
     constructor(props){
-        super(props)
+        super(props);
         this.state={
             courseList:[]
         }
@@ -35,8 +35,9 @@ class CourseList extends Component {
         const {courseList} = this.state;
         const lesson = [];
         courseList.forEach((item)=>{
-            let itemInfo = item
-            let itemId = item._id
+            let itemInfo = item;
+            let itemId = item._id;
+
             lesson.push(
                 <Col span={8} key={itemId}>
                     <CourseItem
@@ -48,7 +49,7 @@ class CourseList extends Component {
                         description={itemInfo.description || ''}/>
                 </Col>
             )
-        })
+        });
 
         return(
             <div className="courseList" style={{margin:"0 2rem"}}>

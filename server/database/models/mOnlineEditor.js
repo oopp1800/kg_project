@@ -4,10 +4,10 @@ module.exports = {
         // _id: {type: String, required: true}, // MongoDB 默认生成 _id
         userId: {type: String, required: true},
         type: {type: String, required: true},
-        keyword: {type: String, required: true},
-        url: {type: String, required: true},
-        size: {type: String, required: true},
-        description: {type: String, required: true},
+        keyword: {type: String},
+        url: {type: String},
+        size: {type: String},
+        description: {type: String},
         thumbnailUrl: {type: String, required: true},
         uniqueData: {type: Object},
         learningTime: {type: String},
@@ -17,6 +17,7 @@ module.exports = {
         language: {type: String},
         applicableObject: {type: Object},
         duration: {type: Number},
+        quiz: {type: Object},
     },
     tProject: {
         _id: {type: String, required: true},

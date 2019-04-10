@@ -284,8 +284,7 @@ class ResultCardInOneLesson extends Component {
             <div className="result-item">
                 <h2>在&nbsp;
                     <Link to={{
-                        pathname: "/learning-page/course/view",
-                        state: { lessonId: result.lessonId },
+                        pathname: `/learning-page/courses/${result.lessonId}`,
                     }}>
                         {result.lessonName}
                     </Link>
@@ -304,7 +303,7 @@ class ResultCardInOneLesson extends Component {
                                 <h3 className="lesson-name">{result.lessonName}</h3>
                             </div>
                             <Link to={{
-                                pathname: "/learning-page/course/view",
+                                pathname: `/learning-page/courses/${result.lessonId}`,
                                 state: { lessonId: result.lessonId },
                             }}>
                                 <Button className="enter-lesson-btn">进入课程</Button>

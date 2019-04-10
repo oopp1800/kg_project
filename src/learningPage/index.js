@@ -103,20 +103,9 @@ class LearningPage extends Component {
                             title={<span><Icon type="user"/><span>课程管理</span></span>}
                         >
                             <Menu.Item key="list">
-                                <Link to={`${this.props.match.url}/course/list`}
+                                <Link to={`${this.props.match.url}/courses`}
                                       style={{textDecoration: 'none'}}>
                                     课程列表
-                                </Link>
-                            </Menu.Item>
-                            <Menu.Item key="view">
-                                <Link to={{
-                                    pathname: `${this.props.match.url}/course/view`,
-                                    state: {
-                                        lessonId: this.state.currentLesson
-                                    }
-                                }}
-                                      style={{textDecoration: 'none'}}>
-                                    当前课程
                                 </Link>
                             </Menu.Item>
                         </SubMenu>
@@ -133,8 +122,9 @@ class LearningPage extends Component {
                     </Menu>
                 </Sider>
                 <Layout style={{marginLeft: 200, overflowY: 'hidden'}}>
+                    <Route exact path={`${this.props.match.url}/`} component={Home}/>
                     <Route path={`${this.props.match.url}/home`} component={Home}/>
-                    <Route path={`${this.props.match.url}/course`} render={() => <LearnerCourseRoute
+                    <Route path={`${this.props.match.url}/courses`} render={() => <LearnerCourseRoute
                         updateCurrentLesson={this.updateCurrentLesson}
                     />}/>
                     <Route path={`${this.props.match.url}/search`} component={SearchRoute}/>

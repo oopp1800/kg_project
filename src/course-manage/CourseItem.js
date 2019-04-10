@@ -10,7 +10,6 @@ const DEFAULT_IMG = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22288%22
 
 const CourseItem = (props) => {
     const {thumbnailUrl, title, description, userName, publishDate, lessonId} = props;
-    console.log(props)
     return (
         <div className="card mb-4 box-shadow">
             <img className="card-img-top"
@@ -29,8 +28,7 @@ const CourseItem = (props) => {
                     <h6>教师：{userName}</h6>
                     <h6>发布时间：{publishDate}</h6>
                     <Link to={{
-                        pathname:'/learning-page/course/view',
-                        state:{lessonId:lessonId}
+                        pathname:`/learning-page/courses/${lessonId}`,
                     }}>
                         <button
                             type="button"

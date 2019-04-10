@@ -91,7 +91,7 @@ const MaterialCard = ({title, description, format, url, thumbnail, onDelete, onE
             cover={<Link to={url || DEFAULT_URL}>
                 <img src={DEFAULT_PATH + thumbnail || DEFAULT_IMAGE} style={{"height": "150px", "width": "100%"}}/>
             </Link>}
-            actions={[<div onClick={onEdit}><Icon type="edit"/></div>,
+            actions={[<div onClick={onEdit}><Icon type="edit" /></div>,
                 <div onClick={onDelete}><Icon type="delete"/></div>]}
         >
             <Meta

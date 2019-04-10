@@ -1,30 +1,16 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
     Switch,
     Route,
     withRouter
 } from 'react-router-dom';
-import {CourseList, CourseContent, NoCurrentLesson} from './index';
+import {CourseList, CourseContent, KnowledgePreviewPage } from './index';
 
-const LearnerCourseRoute = (props) => (
+const LearnerCourseRoute = ({ match }) => (
     <Switch>
-        <Route path={`${props.match.url}/list`} component={CourseList}/>
-        <Route path={`${props.match.url}/view`} render={(routeProps) => {
-            const lessonId = routeProps.location.state.lessonId;
-            if (lessonId) {
-                return (
-                    <CourseContent
-                        updateCurrentLesson={props.updateCurrentLesson}
-                        projectId={lessonId}
-                    />
-                )
-            } else {
-                return (
-                    <NoCurrentLesson/>
-                )
-            }
-
-        }}/>
+        <Route exact path={`${match.url}`} component={CourseList}/>
+        <Route exact path={`${match.url}/:courseId`} component={CourseContent} />
+        <Route exact path={`${match.url}/:courseId/knowledge-points/:knowledgeId`} component={KnowledgePreviewPage} />
     </Switch>
 );
 

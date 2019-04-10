@@ -7,6 +7,10 @@ const formatParser = require('../utils/format-parser');
 const updateGraph = require('../utils/updateGraph');
 const { createInModel, findOneInModel } = require('../../database/model-operations');
 
+const DEFAULT_THUMBNAIL = {
+    default: '/resource/default-thumbnail.png',
+};
+
 /**
  * 上传文件并返回文件相关属性
  * @param file
@@ -115,6 +119,7 @@ const getInfoFromReq = function (req) {
         description,
         keyword,
         language,
+        quiz,
     } = req.body;
 
     let materialInfo = {
@@ -124,6 +129,8 @@ const getInfoFromReq = function (req) {
         description,
         keyword,
         language,
+        quiz,
+        thumbnailUrl: DEFAULT_THUMBNAIL.default,
     };
 
     let files = [];
@@ -141,7 +148,7 @@ const getInfoFromReq = function (req) {
             .then(fileInfo => Object.assign(materialInfo, fileInfo))
     }
     else if (files.length === 0) {
-        return Promise.reject('请上传文件！');
+        return Promise.resolve(materialInfo);
     }
     else {
         return Promise.reject('一次只能上传一个文件！');
@@ -153,51 +160,30 @@ const uploadMaterial = function (req, res, next) {
     let materialInfo = {};
 
     // 成功返回素材信息
-    const onSuccess = data =>
-        res.json({
-            material: {
-                duration: data.duration,
-                source: data.url,
-                thumbnail: data.thumbnailUrl,
-                title: data.name,
-                type: data.type,
-                id: data._id,
-                keyword: data.keyword,
-                size: data.size,
-                description: data.description
-            }
+    const onSuccess = material => {
+        return res.json({
+            material,
         });
-        // res.json({
-        //     status: 'success',
-        //     data
-        // });
+    };
 
     // 失败返回错误信息
     const onError = err => {
-        console.log(err);
+        console.error(err);
         res.json({
             status: 'error',
             message: err.toString(),
         });
     };
 
-    const uploadToDatabaseAndGraph= function() {
-        const pUploadToDatabase = createInModel('tMaterial', materialInfo);
-        const pUploadToGraph = Promise.resolve(updateGraph(materialInfo, 'material'));
-
-        return Promise.all([pUploadToDatabase, pUploadToGraph]);
-    };
-
-    const getUserId = function(username) {
+    const getUser = function(username) {
         return findOneInModel('tUser', { name: username });
     };
 
     getInfoFromReq(req)
-        .then(info => { materialInfo = info; return getUserId(username); })
+        .then(info => { materialInfo = info; return getUser(username); })
         .then(user => { materialInfo.userId = user._id; })
-        .then(uploadToDatabaseAndGraph)
-        .then(([resOfDatabase, resOfGraph]) => resOfDatabase) // 一次只上传一个 Material
-        .then(onSuccess)
+        .then(() => createInModel('tMaterial', materialInfo))
+        .then(data => onSuccess(data._doc))
         .catch(onError);
 
 };

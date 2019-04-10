@@ -40,12 +40,12 @@ class FileUploaderModal extends Component {
                 closable={false}
                 footer={[
                     <Button key="submit"
-                            type="primary"
                             disabled={loading}
                             onClick={this.handleClose}>
-                        完成
+                        关闭
                     </Button>,
                 ]}
+                width={900}
             >
                 <FileUpload
                     onStart={this.handleStartUpload}

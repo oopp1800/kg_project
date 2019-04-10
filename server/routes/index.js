@@ -8,6 +8,7 @@ let material = require('./material');
 let course = require('./course');
 let search = require('./search');
 let log = require('./log');
+let api = require('./api');
 
 let tokenObj = require('./utils/token');
 
@@ -30,13 +31,23 @@ router.post('/deleteProject', tokenObj.checkToken, project.deleteProject);
 router.post('/getCourse', tokenObj.checkToken, course.getCourse);
 router.post('/publishCourse', tokenObj.checkToken, course.publishCourse);
 
-/* 课程学习 */
+/* 课程学习（图搜索 API，含图信息） */
 router.get('/getCourse', tokenObj.checkToken, course.getCourse);
 router.get('/getAllCourses', tokenObj.checkToken, course.getAllCourses);
 router.get('/getKnowledge', tokenObj.checkToken, course.getKnowledge);
 router.get('/getKunit', tokenObj.checkToken, course.getKunit);
 router.get('/getMcourse', tokenObj.checkToken, course.getMcourse);
 router.get('/getAcourse', tokenObj.checkToken, course.getAcourse);
+/* 课程学习（数据库检索 API） */
+router.get('/api/v1/courses/:courseId/knowledge-points/:knowledgeId',
+    tokenObj.checkToken,
+    api.knowledgePoints.get);
+router.post('/api/v1/courses/:courseId/knowledge-points/:knowledgeId/answer',
+    tokenObj.checkToken,
+    api.knowledgePoints.answer);
+router.get('/api/v1/courses/:courseId/learning-path-recommendation',
+    tokenObj.checkToken,
+    api.service.learningPathRecommendation);
 
 /* 资源 */
 router.post('/upload', tokenObj.checkToken, material.uploadMaterial);
