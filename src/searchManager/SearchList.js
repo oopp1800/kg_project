@@ -217,7 +217,7 @@ class ResultCardInOneLesson extends Component {
             return true;
         });
         return subResults.sort(
-            (resource1, resource2) => resource2.similarity - resource1.similarity
+            (resource1, resource2) => resource2.recommendedDegree - resource1.recommendedDegree
         );
     }
 
@@ -337,12 +337,11 @@ const SubResultListItem = props => (
             <p className={`intro intro-${props.data.type}`}>{TYPE_MAPPING_TABLE[props.data.type]}</p>
             <h3 className="sub-result-title">{props.data.title}</h3>
         </div>
-        {props.data.similarity &&
         <Progress className="similarity"
+                  style={{ display: props.data.recommendedDegree? 'block': 'none' }}
                   type="dashboard"
-                  format={percent => `相似度\n${percent.toFixed(1)}%`}
-                  percent={props.data.similarity * 100}/>
-        }
+                  format={percent => `推荐度\n${percent.toFixed(1)}%`}
+                  percent={props.data.recommendedDegree * 100}/>
     </div>
 );
 

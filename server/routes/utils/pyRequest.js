@@ -50,6 +50,4 @@ const pyRequest = function (url, options, method) {
     });
 };
 
-module.exports = {
-    pyRequest
-};
+module.exports = pyRequest;

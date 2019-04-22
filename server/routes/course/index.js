@@ -253,7 +253,7 @@ module.exports = {
                 data: doc
             })
         })
-    }
+    },
 };
 
     

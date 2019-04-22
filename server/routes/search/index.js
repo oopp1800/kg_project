@@ -1,31 +1,23 @@
 const graphOperations = require('../../database/graph-operations');
-const { findOneInModel } = require('../../database/model-operations');
+const { findInModel, findOneInModel } = require('../../database/model-operations');
 const { getUserInfoFromReq } = require('../utils/token');
+const { getLearningHistory, getKnowledgeDemands } = require('../service/course');
+const mongoose = require('mongoose');
 
 /**
- * 根据 _id 将 learningProcess 合并进 knowledges 中
+ * 根据 _id 将 knowledgeDemands 合并进 knowledges 中
  *
- * @param learningProcess [{ userId, knowledgeId, learningProcess }, ...]
+ * @param knowledgeDemands { knowledgeName: demand, ...}
  * @param knowledges [knowledge]
  */
-const _mergeLearningProcessToKnowledges = function (learningProcesses, knowledges) {
-    if (!knowledges || knowledges.length < 1) return knowledges;
-    knowledges.forEach( knowledge => knowledge.learningProcess = 0);
+const _mergeKnowledgeDemandsToKnowledges = function (knowledgeDemands, knowledges) {
+    if (!Array.isArray(knowledges)) return knowledges;
 
-    //TODO: 时间复杂度较高，可使用 Map 降低复杂度
-    learningProcesses.forEach( lp => {
-        knowledges.filter( knowledge => knowledge._id === lp.knowledgeId)
-            .forEach( knowledge => knowledge.learningProcess = lp.learningProcess);
-    });
+    knowledges.forEach( knowledge => knowledge.knowledgeDemand = knowledgeDemands[knowledge.lesson.id][knowledge.knowledge.id] || 0);
     return knowledges;
 };
-const recalculateSimilarityWithLearningProcess = knowledge => {
-    const Gauss = (u, sig, x) => Math.exp(-Math.pow(x-u, 2)/(2*sig*sig));
-    const lp2Multi = x => Gauss(0.5, 0.5, x);
-
-    let learningProcess = knowledge.learningProcess > 1? knowledge.learningProcess / 100: knowledge.learningProcess;
-    let multi = lp2Multi(knowledge.learningProcess);
-    return knowledge.similarity *= multi;
+const calculateRecommendedDegree = knowledge => {
+    knowledge.recommendedDegree = knowledge.similarity * knowledge.knowledgeDemand;
 };
 /**
  * 从 python 服务器返回的图数据转换为前端需要的返回数据
@@ -58,7 +50,7 @@ const recalculateSimilarityWithLearningProcess = knowledge => {
  *       }, ...],
  *   }, ...],
  */
-const parseForReturn = (pyRes, learningProcesses) => {
+const combineKnowledgeDemandsToSearchResult = (pyRes, knowledgeDemands) => {
     const parseLesson = lesson => ({
         lessonId: lesson.id || null,
         lessonName: lesson.data.title || null,
@@ -70,6 +62,8 @@ const parseForReturn = (pyRes, learningProcesses) => {
     const parseOther = other => ({
         type: other.type,
         similarity: other.similarity,
+        knowledgeDemand: other.knowledgeDemand,
+        recommendedDegree: other.recommendedDegree,
         id: other.id,
         title: other.data.title,
         thumbnailUrl: other.data.thumbnailUrl,
@@ -79,7 +73,6 @@ const parseForReturn = (pyRes, learningProcesses) => {
     let result = [];
     let lessonIds = [];
     if (!pyRes) return result;
-    console.log(JSON.stringify(pyRes));
 
     // get all lesson
     for (let type in pyRes) {
@@ -113,76 +106,116 @@ const parseForReturn = (pyRes, learningProcesses) => {
         let contents = pyRes[type];
 
         if (type === 'knowledge') {
-            console.log('before: ', learningProcesses, contents);
-            contents = _mergeLearningProcessToKnowledges(learningProcesses, contents);
+            contents = _mergeKnowledgeDemandsToKnowledges(knowledgeDemands, contents);
 
-            // 根据学习进度重新计算相似度
-            contents.forEach(recalculateSimilarityWithLearningProcess);
-            console.log('after: ',contents);
+            contents.forEach(calculateRecommendedDegree);
         }
 
         contents.forEach(other => {
             if (!other[type] || !other.lesson) return;
 
             result[lessonIds.indexOf(other.lesson.id)].resultsInLesson.push(
-                parseOther({...other[type], similarity: other.similarity || 1, type: type})
+                parseOther({
+                    ...other[type],
+                    recommendedDegree: other.recommendedDegree || 0,
+                    knowledgeDemand: other.knowledgeDemand || 0,
+                    similarity: other.similarity || 0,
+                    type: type})
             );
         });
     }
 
-
     return result;
 };
-const getLearningProcesses = async (knowledges, userId) => {
-    if (!knowledges || knowledges.length < 1) return null;
 
-    let batchGetLP = knowledges.map(knowledge =>
-        findOneInModel('tLearningProcess', { userId, knowledgeId: knowledge.knowledge.id })
-    );
+async function getCoursesByIds(courseIds) {
+    if (typeof courseIds === 'string') {
+        courseIds = [courseIds]
+    }
+
+    const courses = await findInModel('tProject', {
+        '_id': {
+            $in: [...courseIds],
+        }
+    });
+
+    return courseIds.map(courseId => courses.filter(course => course._id === courseId)[0]);
+}
+
+async function getCustomDict(courses) {
+    if (!courses) {
+        courses = await findInModel('tProject');
+    }
+
+    const segmentationDicts = courses.map(course => course.segmentationDict).filter(_ => _);
+    return [].concat(...segmentationDicts);
+}
+
+async function getSearchResult(req, res, next) {
+    const searchInput = req.body.searchInput;
+    const searchOptions = req.body.searchOptions;
+
+    let searchResultFromGraph,
+        searchResult;
 
     try {
-        let learningProcesses = await Promise.all(batchGetLP);
-        return learningProcesses.filter(lp => lp);
+        const user = await getUserInfoFromReq(req);
+        const allCourses = await findInModel('tProject');
+        const customDict = await getCustomDict(allCourses);
+
+        searchResultFromGraph = await graphOperations.search({
+            searchInput,
+            searchOptions,
+            searchDict: customDict,
+        });
+
+        if (Array.isArray(searchResultFromGraph.knowledge)) {
+            const relativeCourseIds = [...new Set(searchResultFromGraph.knowledge.map(k => k.lesson.id))];
+            const relativeCourses = relativeCourseIds.map(courseId => allCourses.filter(course => course._id === courseId)[0]);
+
+            /*
+             * knowledgeDemandsArrayInCourses: [{knowledgeName: demand, ...}, ...]
+             * knowledgeDemands: { courseId: { knowledgeId: demand, ... }, ... }
+             */
+            const knowledgeDemandsArrayInCourses = await Promise.all(
+                relativeCourses.map(
+                    async course => {
+                        const learningHistory = await getLearningHistory(user._id, course);
+                        return getKnowledgeDemands(learningHistory, course.projectName)
+                    }
+                )
+            );
+            let knowledgeDemands = {};
+            knowledgeDemandsArrayInCourses.forEach((kds, index) => {
+                const courseId = relativeCourseIds[index];
+                const course = relativeCourses[index];
+
+                knowledgeDemands[courseId] = {};
+                for (let [knowledgeName, demand] of Object.entries(kds)) {
+                    const knowledgeId = course.data.filter(knowledge => knowledge.title === knowledgeName)[0]._id;
+
+                    knowledgeDemands[courseId][knowledgeId] = demand;
+                }
+            });
+
+            searchResult = combineKnowledgeDemandsToSearchResult(searchResultFromGraph, knowledgeDemands);
+        }
+
+        return res.json({
+            status: 'success',
+            data: {
+                searchResult,
+                searchInput,
+            }
+        })
     }
     catch (error) {
-        console.error(error);
-        return null;
+        return console.error(error);
     }
-};
+}
 
 module.exports = {
-    getSearchResult: async function (req, res, next) {
-        const searchInput = req.body.searchInput;
-        const searchOptions = req.body.searchOptions;
-
-        let searchResultFromGraph,
-            learningProcesses,
-            searchResult;
-
-        try {
-            const user = await getUserInfoFromReq(req);
-
-            searchResultFromGraph = await graphOperations.search({
-                searchInput,
-                searchOptions,
-            });
-            if ( searchResultFromGraph.knowledge && searchResultFromGraph.knowledge.length > 0) {
-                learningProcesses = await getLearningProcesses(searchResultFromGraph.knowledge, user.id);
-            }
-            searchResult = parseForReturn(searchResultFromGraph, learningProcesses);
-
-            return res.json({
-                status: 'success',
-                data: {
-                    searchResult,
-                    searchInput,
-                }
-            })
-        }
-        catch (error) {
-            return console.error(error);
-        }
-    }
+    getSearchResult,
 };
 
 

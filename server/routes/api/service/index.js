@@ -1,6 +1,7 @@
 const { getUserInfoFromReq } = require('../../utils/token');
 const { createInModel, findInModel, findOneInModel } = require('../../../database/model-operations');
-const { pyRequest } = require('../../utils/pyRequest');
+const pyRequest = require('../../utils/pyRequest');
+const { getKnowledgeDemands, getLearningHistory } = require('../../service/course');
 
 
 async function _getLearningActivities(userId, courseId) {
@@ -57,6 +58,35 @@ async function learningPathRecommendation(req, res, next) {
     });
 }
 
+async function getKnowledgeDemandsRouter(req, res, next) {
+    const { courseId } = req.params;
+    let knowledgeDemands = null;
+
+    try {
+        const [course, user] = await Promise.all([
+            findOneInModel('tProject', { _id: courseId }),
+            getUserInfoFromReq(req),
+        ]);
+
+        const learningHistory = await getLearningHistory(user._id, course);
+        knowledgeDemands = await getKnowledgeDemands(learningHistory, course.projectName);
+    } catch(err) {
+        return res.status(500).json({
+            status: 'error',
+            message: err,
+        })
+    }
+
+
+    return res.json({
+        status: 'success',
+        data: {
+            knowledgeDemands,
+        }
+    });
+}
+
 module.exports = {
     learningPathRecommendation,
+    getKnowledgeDemandsRouter,
 };

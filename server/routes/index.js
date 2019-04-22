@@ -48,6 +48,9 @@ router.post('/api/v1/courses/:courseId/knowledge-points/:knowledgeId/answer',
 router.get('/api/v1/courses/:courseId/learning-path-recommendation',
     tokenObj.checkToken,
     api.service.learningPathRecommendation);
+router.get('/api/v1/courses/:courseId/knowledge-demands',
+    tokenObj.checkToken,
+    api.service.getKnowledgeDemandsRouter);
 
 /* 资源 */
 router.post('/upload', tokenObj.checkToken, material.uploadMaterial);
