@@ -4,31 +4,17 @@ module.exports = function (req, res, next) {
     const projectData = req.body.projectData;
     const projectId = projectData._id;
     if (tokenKey.param !== username) {
-        res.json({
+        return res.json({
             status: false,
             message: "验证失败"
         });
         res.end();
-    } else {
-        let tProject = global.dbHandel.getModel('tProject');
-        tProject.findOne({_id: projectId}, function (err, doc) {
-            if (err) {
-                tProject.create(projectData, function (err, newDoc) {
-                    if(err){
-                        return res.json({
-                            status: 'false',
-                            message: '工程数据保存失败'
-                        })
-                    }
-                    res.json({
-                        status: 'success',
-                        data: {}
-                    });
-                });
-            }
-            let updateData = projectData;
-            updateData['updateDate'] = new Date().toLocaleString();
-            tProject.findOneAndUpdate({_id:updateData._id},updateData, function (err, newDoc) {
+    }
+
+    const tProject = global.dbHandel.getModel('tProject');
+    tProject.findOne({_id: projectId}, function (err, doc) {
+        if (err) {
+            tProject.create(projectData, function (err, newDoc) {
                 if(err){
                     return res.json({
                         status: 'false',
@@ -40,6 +26,21 @@ module.exports = function (req, res, next) {
                     data: {}
                 });
             });
-        })
-    }
+        }
+        let updateData = projectData;
+        updateData['updateDate'] = new Date().toLocaleString();
+        tProject.findOneAndUpdate({_id:updateData._id}, updateData, function (err, newDoc) {
+            if(err){
+                return res.json({
+                    status: 'false',
+                    message: '工程数据保存失败'
+                })
+            }
+
+            res.json({
+                status: 'success',
+                data: {}
+            });
+        });
+    })
 };

@@ -30,6 +30,7 @@ module.exports = {
         startPosition: {type: Object},
         createDate: {type: String},
         updateDate: {type: String},
-        description: {type: String}
+        description: {type: String},
+        segmentationDict: {type: Array},
     }
 };

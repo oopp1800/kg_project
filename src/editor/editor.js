@@ -27,12 +27,14 @@ class Editor extends Component {
             projectName: '',
             thumbnailUrl: '',
             description: '',
+            segmentationDict: [],
             startPosition: {
                 x: 250,
                 y: 300
             },
             projectDataFetched: false,
             path_container: [],
+            alternativeSegmentationWords: [],
             visible: false
         };
         this.canvasConstructor = this.canvasConstructor.bind(this);
@@ -47,30 +49,34 @@ class Editor extends Component {
     }
 
     showModal = () => {
+        const knowledgeUnits = this.state.knowledgeUnitList;
+        const alternativeSegmentationWords = knowledgeUnits.map(knowledgeUnit => knowledgeUnit.title);
+
         this.setState({
             visible: true,
+            alternativeSegmentationWords,
         });
-    }
+    };
 
     handleCreate = () => {
-        console.log('handleCreate')
-        let updateOptions = {}
+        let updateOptions = {};
         const form = this.formRef.props.form;
         form.validateFields((err, values) => {
-            console.log(values)
+            console.log(values);
             if (err) {
                 return;
             }
             updateOptions.projectName = values.title || '';
             updateOptions.description = values.description || '';
             updateOptions.thumbnailUrl = values.thumbnailUrl || '';
+            updateOptions.segmentationDict = values.segmentationDict || [];
             updateOptions.visible = false;
             console.log(updateOptions);
 
             form.resetFields();
             this.setState(updateOptions);
         });
-    }
+    };
     handleCancel = (e) => {
         console.log('handleCancel');
         this.setState({
@@ -1320,6 +1326,7 @@ class Editor extends Component {
             userName: _this.state.username,
             description: _this.state.description,
             thumbnailUrl: this.state.thumbnailUrl,
+            segmentationDict: this.state.segmentationDict,
             publishStatus: 'unPublish',
             data: _this.convertStructure(_this.state.knowledgeUnitList),
             startPosition: startPosition
@@ -1756,7 +1763,8 @@ class Editor extends Component {
                 projectDataFetched: true,
                 username: _this.props.username,
                 knowledgeUnitList: _this.reConvertStructure(data[0].data) || [],
-                startPosition: data[0].startPosition
+                startPosition: data[0].startPosition,
+                segmentationDict: data[0].segmentationDict || [],
             }, () => {
                 callback()
             });
@@ -1790,7 +1798,7 @@ class Editor extends Component {
             });
 
         }
-        const visible = this.state.visible
+        const visible = this.state.visible;
 
         return (
             <div id="editorArea">
@@ -1825,6 +1833,8 @@ class Editor extends Component {
                         projectName={this.state.projectName}
                         thumbnailUrl={this.state.thumbnailUrl}
                         description={this.state.description}
+                        segmentationDict={this.state.segmentationDict}
+                        alternativeSegmentationWords={this.state.alternativeSegmentationWords}
                     />
                 </div>
                 <div id="mainCanvas"/>
@@ -1885,10 +1895,10 @@ class UpdateSetting extends Component {
             >
                 <Form layout="vertical">
                     <FormItem label="课程名称">
-                        {getFieldDecorator('title')(
-                            <Input
-                                placeholder={projectName}
-                            />
+                        {getFieldDecorator('title', {
+                            initialValue: projectName || '',
+                        })(
+                            <Input />
                         )}
                     </FormItem>
                     <FormItem label="课程描述">
@@ -1912,13 +1922,31 @@ class UpdateSetting extends Component {
                             </Select>
                         )}
                     </FormItem>
+                    <FormItem label="自定义分词词典">
+                        {getFieldDecorator('segmentationDict', {
+                            initialValue: this.props.segmentationDict,
+                        })(
+                            <Select
+                                mode="tags"
+                                placeholder="分词词典"
+                                size="default"
+                                className='thumbnailUrlSelect'
+                            >
+                                {
+                                    this.props.alternativeSegmentationWords.map(word => (
+                                        <Option key={word}>{word}</Option>
+                                    ))
+                                }
+                            </Select>
+                        )}
+                    </FormItem>
                 </Form>
             </Modal>
         )
     }
 }
 
-const UpdateSettingForm = Form.create()(UpdateSetting)
+const UpdateSettingForm = Form.create()(UpdateSetting);
 
 
 export default withRouter(Editor);
