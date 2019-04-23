@@ -266,7 +266,7 @@ class QuizMaterialDisplayForm extends React.Component {
                             form={form} />
                 <Row>
                     <Col span={20}>
-                        <div>
+                        <div style={{ color: 'red' }}>
                             { this.state.showAnalysis && (this.state.answerCorrect? '回答正确！': '回答错误！')}
                         </div>
                     </Col>

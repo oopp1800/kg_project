@@ -43,8 +43,10 @@ class KnowledgePreviewPage extends React.Component {
         this.refreshState(courseId, knowledgeId);
     }
 
-    componentWillReceiveProps(nextProps, nextContext) {
-        const { courseId, knowledgeId } = nextProps.match.params;
+    componentDidUpdate(prevProps) {
+        if (prevProps.match.params.knowledgeId === this.props.match.params.knowledgeId) return;
+
+        const { courseId, knowledgeId } = this.props.match.params;
         this.refreshState(courseId, knowledgeId);
     }
 
@@ -147,8 +149,10 @@ class KnowledgePreview extends React.Component {
         this.refreshState(course._id);
     }
 
-    componentWillReceiveProps(nextProps, nextContext) {
-        const { course } = nextProps;
+    componentDidUpdate(prevProps) {
+        if (prevProps.knowledge._id === this.props.knowledge._id) return;
+
+        const { course } = this.props;
         this.refreshState(course._id);
     }
 
@@ -175,7 +179,9 @@ class KnowledgePreview extends React.Component {
                         <Col className="gutter-row" span={10} style={{height: '27rem', background: '#ffffff'}}>
                             <SubCourseList mCourse={mCourse}
                                            aCourses={aCourses}
-                                           changeCourseUnit={this.changeCourseUnit} />
+                                           changeCourseUnit={this.changeCourseUnit}
+                                           currentDisplay={currentCourseUnit._id}
+                            />
                         </Col>
                     </Row>
                     <Row style={{
@@ -237,18 +243,22 @@ class DisplayArea extends React.Component {
     }
 }
 
-const SubCourseList = ({ mCourse, aCourses, changeCourseUnit}) => (
+const SubCourseList = ({ mCourse, aCourses, changeCourseUnit, currentDisplay }) => (
     <div className="subCoursePreview">
         <MainLessonInfoArea changeCourseUnit={changeCourseUnit}
-                            mainCourseInfo={mCourse} />
+                            mainCourseInfo={mCourse}
+                            isDisplay={mCourse._id === currentDisplay}
+        />
         <AidList changeCourseUnit={changeCourseUnit}
-                 aCourses={aCourses} />
+                 aCourses={aCourses}
+                 currentDisplay={currentDisplay}
+        />
     </div>
 );
 
 class AidList extends React.Component {
     render() {
-        const { aCourses, changeCourseUnit } = this.props;
+        const { aCourses, changeCourseUnit, currentDisplay } = this.props;
 
         return (
             <div className="infinite-container">
@@ -263,7 +273,7 @@ class AidList extends React.Component {
                                 播放</div>]}
                         >
                             <List.Item.Meta
-                                title={item.title}
+                                title={(<span style={{ color: item._id === currentDisplay? 'red': '' }}>{item.title}</span>)}
                                 description={item.description}
                             />
                         </List.Item>
