@@ -16,14 +16,20 @@ async function getKnowledgeDemands(learningHistory, courseName, isNormalized = t
         return knowledgeDemands;
     }
 
-    const knowledgeDemands = await pyRequest('/knowledge-demands', {
-        body: {
-            learningHistory,
-            course: courseName,
-        }
-    }, 'POST');
+    try {
+        const knowledgeDemands = await pyRequest('/knowledge-demands', {
+            body: {
+                learningHistory,
+                course: courseName,
+            }
+        }, 'POST');
 
-    return isNormalized? normalization(knowledgeDemands): knowledgeDemands;
+        return isNormalized ? normalization(knowledgeDemands) : knowledgeDemands;
+    }
+    catch (error) {
+        console.warn(error);
+        return {};
+    }
 }
 
 async function _getLearningActivities(userId, courseId) {

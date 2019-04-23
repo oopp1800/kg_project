@@ -28,22 +28,6 @@ class SearchPage extends Component {
         })
     };
 
-    jumpToLessonPage = (e) => {
-        const lessonId = e.target.parentNode.dataset.lid;
-        console.log(lessonId)
-    };
-
-    componentDidUpdate() {
-        // sessionStorage.setItem('searchState', JSON.stringify(this.state));
-    }
-
-    componentDidMount() {
-        // const prevState = sessionStorage.getItem('searchState');
-        // if (prevState) {
-        //     this.setState(JSON.parse(prevState));
-        // }
-    }
-
     render() {
         return (
             <div id="searchWrapper" className="searchWrapper" style={{position: 'relative'}}>

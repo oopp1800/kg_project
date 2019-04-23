@@ -2,6 +2,7 @@ const graphOperations = require('../../database/graph-operations');
 const { findInModel, findOneInModel } = require('../../database/model-operations');
 const { getUserInfoFromReq } = require('../utils/token');
 const { getLearningHistory, getKnowledgeDemands } = require('../service/course');
+const config = require('config');
 const mongoose = require('mongoose');
 
 /**
@@ -13,11 +14,11 @@ const mongoose = require('mongoose');
 const _mergeKnowledgeDemandsToKnowledges = function (knowledgeDemands, knowledges) {
     if (!Array.isArray(knowledges)) return knowledges;
 
-    knowledges.forEach( knowledge => knowledge.knowledgeDemand = knowledgeDemands[knowledge.lesson.id][knowledge.knowledge.id] || 0);
+    knowledges.forEach(knowledge => knowledge.knowledgeDemand = knowledgeDemands[knowledge.lesson.id][knowledge.knowledge.id]);
     return knowledges;
 };
 const calculateRecommendedDegree = knowledge => {
-    knowledge.recommendedDegree = knowledge.similarity * knowledge.knowledgeDemand;
+    knowledge.recommendedDegree = knowledge.similarity * (knowledge.knowledgeDemand || 1);
 };
 /**
  * 从 python 服务器返回的图数据转换为前端需要的返回数据
@@ -125,22 +126,20 @@ const combineKnowledgeDemandsToSearchResult = (pyRes, knowledgeDemands) => {
         });
     }
 
-    return result;
-};
-
-async function getCoursesByIds(courseIds) {
-    if (typeof courseIds === 'string') {
-        courseIds = [courseIds]
-    }
-
-    const courses = await findInModel('tProject', {
-        '_id': {
-            $in: [...courseIds],
-        }
+    result.forEach(oneLessonResult => {
+        const recommendedDegrees = oneLessonResult.resultsInLesson.filter(resource => resource.type === "knowledge")
+            .map(resource => resource.recommendedDegree).sort((a, b) => b - a);
+        const AVERAGE_THRESHOLD = config.get('search').courseRecommendationDegreeDependOnKnowledgeNumber;
+        const actualNum = Math.min(recommendedDegrees.length, AVERAGE_THRESHOLD);
+        const sumDegree = recommendedDegrees.slice(0, actualNum).reduce((prev, curr) => prev + curr, 0);
+        
+        oneLessonResult.recommendedDegree = sumDegree / actualNum;
     });
 
-    return courseIds.map(courseId => courses.filter(course => course._id === courseId)[0]);
-}
+    result.sort((courseA, courseB) => courseB.recommendedDegree - courseA.recommendedDegree);
+
+    return result;
+};
 
 async function getCustomDict(courses) {
     if (!courses) {
@@ -159,8 +158,10 @@ async function getSearchResult(req, res, next) {
         searchResult;
 
     try {
-        const user = await getUserInfoFromReq(req);
-        const allCourses = await findInModel('tProject');
+        const [user, allCourses] = await Promise.all([
+            getUserInfoFromReq(req),
+            findInModel('tProject'),
+        ]);
         const customDict = await getCustomDict(allCourses);
 
         searchResultFromGraph = await graphOperations.search({
@@ -210,7 +211,11 @@ async function getSearchResult(req, res, next) {
         })
     }
     catch (error) {
-        return console.error(error);
+        console.error(error);
+        return res.status(500).json({
+            status: 'error',
+            message: error,
+        });
     }
 }
 

@@ -24,6 +24,7 @@
     "react-router-dom": "^4.2.2",
     "react-scripts": "1.1.1",
     "reqwest": "^2.0.5",
+    "toml": "^3.0.0",
     "webuploader": "^0.1.8"
   },
   "scripts": {
