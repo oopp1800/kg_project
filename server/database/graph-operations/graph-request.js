@@ -12,6 +12,7 @@ const REQUEST_URL = {
     'publish': GRAPH_SERVER_HOST + '/publishLesson',
     'unPublish': GRAPH_SERVER_HOST + '/unPublishLesson',
     'search': GRAPH_SERVER_HOST + '/search',
+    'searchV2': GRAPH_SERVER_HOST + '/search-v2',
     'getLesson': GRAPH_SERVER_HOST + '/getLesson',
     'getKnowledge': GRAPH_SERVER_HOST + '/getKnowledge',
     'getKunit': GRAPH_SERVER_HOST + '/getKunit',
@@ -27914,7 +27915,7 @@ module.exports = {
                 return mock_response();
             }
 
-            return _request(params, 'search');
+            return _request(params, 'searchV2');
         }
         catch (err) {
             throw new Error(err);

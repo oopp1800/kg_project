@@ -1,4 +1,5 @@
 const graphOperations = require('../../database/graph-operations');
+const pyRequest = require('../utils/pyRequest');
 const { findInModel, findOneInModel } = require('../../database/model-operations');
 const { getUserInfoFromReq } = require('../utils/token');
 const { getLearningHistory, getKnowledgeDemands } = require('../service/course');
@@ -141,6 +142,60 @@ const combineKnowledgeDemandsToSearchResult = (pyRes, knowledgeDemands) => {
     return result;
 };
 
+function _aggregateByLesson(searchResult, lessons, knowledgeDemands) {
+    function _parseResource(resource, resourceType, {knowledgeDemand}) {
+        let similarity, recommendedDegree;
+
+        resourceType = resourceType.slice(0, -1);
+
+        if (resourceType === 'knowledge') {
+            similarity = resource.similarity || 1;
+            recommendedDegree = similarity * (knowledgeDemand || 1)
+        }
+
+        return {
+            type: resourceType,
+            id: resource.id,
+            title: resource.title,
+            thumbnailUrl: resource.thumbnailUrl,
+            similarity,
+            knowledgeDemand,
+            recommendedDegree,
+        }
+    }
+
+    /**
+     * searchResultIndexById: {acourses: {id1: acourse, id2: acourse, ...}, ...}
+     */
+    const searchResultIndexById = {};
+    for (let [type, resources] of Object.entries(searchResult)) {
+        searchResultIndexById[type] = {};
+        resources.forEach(r => searchResultIndexById[type][r.id] = r);
+    }
+
+    return lessons.map(lesson => {
+        let resourcesResultInThisLesson = [];
+
+        // 将每个 lesson 中的 relatedSearchResources 部分的 id 转换为实际资源信息
+        for (let type of Object.keys(lesson.relatedSearchResources)) {
+            const resource_ids = lesson.relatedSearchResources[type];
+
+            resourcesResultInThisLesson = resourcesResultInThisLesson.concat(resource_ids.map(id =>
+                _parseResource(searchResultIndexById[type][id], type, { knowledgeDemand: knowledgeDemands[lesson.id][id] })
+            ));
+        }
+
+        return {
+            lessonId: lesson.id,
+            lessonName: lesson.title,
+            lessonDescription: lesson.description,
+            publishStatus: lesson.publishStatus,
+            thumbnailUrl: lesson.thumbnailUrl,
+            resultsInLesson: resourcesResultInThisLesson,
+        };
+    });
+}
+
 async function getCustomDict(courses) {
     if (!courses) {
         courses = await findInModel('tProject');
@@ -164,43 +219,48 @@ async function getSearchResult(req, res, next) {
         ]);
         const customDict = await getCustomDict(allCourses);
 
-        searchResultFromGraph = await graphOperations.search({
+        const resultByResourceType = await graphOperations.search({
             searchInput,
-            searchOptions,
+            resourceTypes: searchOptions,
             searchDict: customDict,
         });
 
-        if (Array.isArray(searchResultFromGraph.knowledge)) {
-            const relativeCourseIds = [...new Set(searchResultFromGraph.knowledge.map(k => k.lesson.id))];
-            const relativeCourses = relativeCourseIds.map(courseId => allCourses.filter(course => course._id === courseId)[0]);
+        let resultIdsByResourceType = {};
+        Object.keys(resultByResourceType).forEach(resourceType => {
+            resultIdsByResourceType[resourceType] = resultByResourceType[resourceType].map(r => r.id)
+        });
 
-            /*
-             * knowledgeDemandsArrayInCourses: [{knowledgeName: demand, ...}, ...]
-             * knowledgeDemands: { courseId: { knowledgeId: demand, ... }, ... }
-             */
-            const knowledgeDemandsArrayInCourses = await Promise.all(
-                relativeCourses.map(
-                    async course => {
-                        const learningHistory = await getLearningHistory(user._id, course);
-                        return getKnowledgeDemands(learningHistory, course.projectName)
-                    }
-                )
-            );
-            let knowledgeDemands = {};
-            knowledgeDemandsArrayInCourses.forEach((kds, index) => {
-                const courseId = relativeCourseIds[index];
-                const course = relativeCourses[index];
+        const lessons = await pyRequest('/lessons', { query: resultIdsByResourceType }, 'GET');
+        const lessonsWithFullInfo = await findInModel('tProject', { _id: {
+                $in: lessons.map(l => l.id)
+            }});
 
-                knowledgeDemands[courseId] = {};
-                for (let [knowledgeName, demand] of Object.entries(kds)) {
-                    const knowledgeId = course.data.filter(knowledge => knowledge.title === knowledgeName)[0]._id;
-
-                    knowledgeDemands[courseId][knowledgeId] = demand;
+        /*
+         * knowledgeDemandsArrayInCourses: [{knowledgeName: demand, ...}, ...]
+         * knowledgeDemands: { courseId: { knowledgeId: demand, ... }, ... }
+         */
+        const knowledgeDemandsArrayInCourses = await Promise.all(
+            lessonsWithFullInfo.map(
+                async lesson => {
+                    const learningHistory = await getLearningHistory(user._id, lesson);
+                    return getKnowledgeDemands(learningHistory, lesson.projectName)
                 }
-            });
+            )
+        );
+        let knowledgeDemands = {};
+        knowledgeDemandsArrayInCourses.forEach((kds, index) => {
+            const lesson = lessonsWithFullInfo[index];
 
-            searchResult = combineKnowledgeDemandsToSearchResult(searchResultFromGraph, knowledgeDemands);
-        }
+            knowledgeDemands[lesson.id] = {};
+            for (let [knowledgeName, demand] of Object.entries(kds)) {
+                //TODO: 根据 knowledgeName 获取 knowledgeId
+                const knowledgeId = lesson.data.filter(knowledge => knowledge.title === knowledgeName)[0]._id;
+
+                knowledgeDemands[lesson.id][knowledgeId] = demand;
+            }
+        });
+
+        searchResult = _aggregateByLesson(resultByResourceType, lessons, knowledgeDemands);
 
         return res.json({
             status: 'success',

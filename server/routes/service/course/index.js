@@ -41,7 +41,7 @@ async function _getLearningActivities(userId, courseId) {
 }
 
 async function getLearningHistory(userId, course) {
-    const activities = await _getLearningActivities(userId, course._id);
+    const activities = await _getLearningActivities(userId, course.id);
     const learningHistory = activities.map(activity => ({
         name: course.data.filter(knowledge => knowledge._id === activity.knowledgeId)[0].title,
         correct: activity.correct,

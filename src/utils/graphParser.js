@@ -161,7 +161,7 @@ export default {
         data.forEach(node => {
             let graphNode = {
                 id: node._id,
-                label: `${node.title}\n学习进度：${node.learningProcess}` ,
+                label: `${node.title}` ,
                 shape: 'image',
                 image: node.thumbnailUrl || null,
             };
