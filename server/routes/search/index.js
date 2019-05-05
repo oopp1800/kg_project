@@ -142,19 +142,48 @@ const combineKnowledgeDemandsToSearchResult = (pyRes, knowledgeDemands) => {
     return result;
 };
 
-function _aggregateByLesson(searchResult, lessons, knowledgeDemands) {
-    function _parseResource(resource, resourceType, {knowledgeDemand}) {
+function _aggregateByLesson(searchResult, lessons, knowledgeDemands, knowledgeResourceMap) {
+    function _parseKnowledge(knowledge, {knowledgeDemand}) {
         let similarity, recommendedDegree;
 
-        resourceType = resourceType.slice(0, -1);
+        similarity = knowledge.similarity || 1;
+        recommendedDegree = similarity * (knowledgeDemand || 1);
 
-        if (resourceType === 'knowledge') {
-            similarity = resource.similarity || 1;
-            recommendedDegree = similarity * (knowledgeDemand || 1)
+        return {
+            type: 'knowledge',
+            id: knowledge.id,
+            title: knowledge.title,
+            thumbnailUrl: knowledge.thumbnailUrl,
+            similarity,
+            knowledgeDemand,
+            recommendedDegree,
+        }
+    }
+
+    function _parseResource(resource, resourceType, {lessonId, knowledgeResourceMap, parsedKnowledges}) {
+        function _findRelativeKnowledgeId() {
+            for (let [knowledgeId, resources] of Object.entries(knowledgeResourceMap[lessonId])) {
+                if (resources[resourceType] && resources[resourceType].indexOf(resource.id) > -1) {
+                    return knowledgeId;
+                }
+            }
+            return null;
+        }
+
+        let similarity, recommendedDegree, knowledgeDemand;
+
+        const relativeKnowledgeId = _findRelativeKnowledgeId();
+        const relativeKnowledges = parsedKnowledges.filter(knowledge => knowledge.id === relativeKnowledgeId);
+        if (relativeKnowledges.length >= 1) {
+            const relativeKnowledge = relativeKnowledges[0];
+
+            knowledgeDemand = relativeKnowledge.knowledgeDemand;
+            similarity = relativeKnowledge.similarity;
+            recommendedDegree = relativeKnowledge.recommendedDegree;
         }
 
         return {
-            type: resourceType,
+            type: resourceType.slice(0, -1),
             id: resource.id,
             title: resource.title,
             thumbnailUrl: resource.thumbnailUrl,
@@ -176,12 +205,25 @@ function _aggregateByLesson(searchResult, lessons, knowledgeDemands) {
     return lessons.map(lesson => {
         let resourcesResultInThisLesson = [];
 
+        const knowledgeIds = lesson.relatedSearchResources['knowledges'];
+        resourcesResultInThisLesson = resourcesResultInThisLesson.concat(knowledgeIds.map(id =>
+            _parseKnowledge(searchResultIndexById['knowledges'][id], {
+                knowledgeDemand: knowledgeDemands[lesson.id][id],
+            })
+        ));
+
         // 将每个 lesson 中的 relatedSearchResources 部分的 id 转换为实际资源信息
         for (let type of Object.keys(lesson.relatedSearchResources)) {
+            if (type === 'knowledges') continue;
+
             const resource_ids = lesson.relatedSearchResources[type];
 
             resourcesResultInThisLesson = resourcesResultInThisLesson.concat(resource_ids.map(id =>
-                _parseResource(searchResultIndexById[type][id], type, { knowledgeDemand: knowledgeDemands[lesson.id][id] })
+                _parseResource(searchResultIndexById[type][id], type, {
+                    lessonId: lesson.id,
+                    knowledgeResourceMap: knowledgeResourceMap,
+                    parsedKnowledges: resourcesResultInThisLesson,
+                })
             ));
         }
 
@@ -194,6 +236,24 @@ function _aggregateByLesson(searchResult, lessons, knowledgeDemands) {
             resultsInLesson: resourcesResultInThisLesson,
         };
     });
+}
+
+function _generateKnowledgeResourceMap(lessons) {
+    let knowledgeResourceMap = {};
+
+    for (let lesson of lessons) {
+        let mapOfOneLesson = {};
+
+        for (let knowledge of lesson.data) {
+            mapOfOneLesson[knowledge._id] = {
+                kunits: [knowledge.teachUnit._id] || [],
+                acourses: [knowledge.teachUnit.aCourseUnit.map(ac => ac._id)],
+                mcourses: [knowledge.teachUnit.mCourseUnit._id],
+            };
+        }
+        knowledgeResourceMap[lesson._id] = mapOfOneLesson;
+    }
+    return knowledgeResourceMap;
 }
 
 async function getCustomDict(courses) {
@@ -230,6 +290,13 @@ async function getSearchResult(req, res, next) {
             resultIdsByResourceType[resourceType] = resultByResourceType[resourceType].map(r => r.id)
         });
 
+        /**
+         * lessons: 从图数据库返回的数据
+         *      [{id, description, ..., relatedSearchResources: {acourses: ['xxx', ...], ...}, ...}]
+         *
+         * lessonsWithFullInfo: 从 MongoDB 返回的数据
+         *      [{_id, projectName, ..., data: [{_id, title, ..., teachUnit: {...}}, ...]}, ...]
+         */
         const lessons = await pyRequest('/lessons', { query: resultIdsByResourceType }, 'GET');
         const lessonsWithFullInfo = await findInModel('tProject', { _id: {
                 $in: lessons.map(l => l.id)
@@ -253,14 +320,15 @@ async function getSearchResult(req, res, next) {
 
             knowledgeDemands[lesson.id] = {};
             for (let [knowledgeName, demand] of Object.entries(kds)) {
-                //TODO: 根据 knowledgeName 获取 knowledgeId
                 const knowledgeId = lesson.data.filter(knowledge => knowledge.title === knowledgeName)[0]._id;
 
                 knowledgeDemands[lesson.id][knowledgeId] = demand;
             }
         });
 
-        searchResult = _aggregateByLesson(resultByResourceType, lessons, knowledgeDemands);
+        const knowledgeResourceMap = _generateKnowledgeResourceMap(lessonsWithFullInfo);
+
+        searchResult = _aggregateByLesson(resultByResourceType, lessons, knowledgeDemands, knowledgeResourceMap);
 
         return res.json({
             status: 'success',
