@@ -1772,6 +1772,11 @@ class Editor extends Component {
         })
     }
 
+    setAutoSegmentation = () => {
+        this.setState({
+           segmentationDict: new Array(...new Set([...this.state.segmentationDict, ...this.state.alternativeSegmentationWords]))
+        });
+    };
 
     componentDidMount() {
         const {location} = this.props;
@@ -1835,6 +1840,7 @@ class Editor extends Component {
                         description={this.state.description}
                         segmentationDict={this.state.segmentationDict}
                         alternativeSegmentationWords={this.state.alternativeSegmentationWords}
+                        setAutoSegmentation={this.setAutoSegmentation}
                     />
                 </div>
                 <div id="mainCanvas"/>
@@ -1849,7 +1855,7 @@ class Editor extends Component {
 class UpdateSetting extends Component {
     state = {
         materialList: []
-    }
+    };
 
     componentDidMount() {
         const token = localStorage.getItem('token');
@@ -1868,6 +1874,12 @@ class UpdateSetting extends Component {
                 }
             })
             .catch(err => console.log(err));
+    }
+
+    componentWillReceiveProps(nextProps, nextContext) {
+        if (nextProps.segmentationDict === this.props.segmentationDict) return;
+
+        this.props.form.resetFields(["segmentationDict"]);
     }
 
     render() {
@@ -1922,7 +1934,12 @@ class UpdateSetting extends Component {
                             </Select>
                         )}
                     </FormItem>
-                    <FormItem label="自定义分词词典">
+                    <FormItem label={(<div>
+                        自定义分词词典<Button size="small"
+                                       style={{ marginLeft: "5px" }}
+                                       onClick={this.props.setAutoSegmentation}
+                    >自动获取</Button>
+                    </div>)}>
                         {getFieldDecorator('segmentationDict', {
                             initialValue: this.props.segmentationDict,
                         })(

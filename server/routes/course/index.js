@@ -104,7 +104,7 @@ module.exports = {
             [project, learningProcess] = await Promise.all(batchRequest);
 
             project = _mergeLearningProcessToProject(learningProcess, project);
-            project = _getRecommendation(project);
+            // project = _getRecommendation(project);
         }
         catch (err) {
             console.log(err);

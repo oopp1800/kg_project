@@ -135,7 +135,11 @@ class KnowledgePreview extends React.Component {
             });
     };
 
-    refreshState(courseId) {
+    refreshState(courseId, mCourse) {
+        this.setState({
+            currentCourseUnit: mCourse
+        });
+
         return netService.recommendKnowledge(courseId)
             .then(data => {
                 this.setState({
@@ -145,15 +149,15 @@ class KnowledgePreview extends React.Component {
     }
 
     componentDidMount() {
-        const { course } = this.props;
-        this.refreshState(course._id);
+        const { course, mCourse } = this.props;
+        this.refreshState(course._id, mCourse);
     }
 
     componentDidUpdate(prevProps) {
         if (prevProps.knowledge._id === this.props.knowledge._id) return;
 
-        const { course } = this.props;
-        this.refreshState(course._id);
+        const { course, mCourse } = this.props;
+        this.refreshState(course._id, mCourse);
     }
 
     render() {
